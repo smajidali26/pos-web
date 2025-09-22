@@ -1,0 +1,153 @@
+/* POS Web Application Styles */
+
+/* Override Bootstrap container max-width for full POS experience */
+.container-fluid {
+  padding: 0;
+}
+
+.container {
+  max-width: 1400px;
+}
+
+/* Product cards hover effects */
+.card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Cart styles */
+.cart-item {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+/* Product grid styles */
+.product-card {
+  cursor: pointer;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.product-card h6 {
+  margin-bottom: 5px;
+}
+
+.product-card .card-text {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Navbar custom styles */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Button group custom styles */
+.btn-group .btn {
+  min-width: 40px;
+}
+
+/* Login page styles */
+.min-vh-100 {
+  min-height: 100vh;
+}
+
+.login-card {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.login-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: #f8d7da;
+  color: #721c24 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 0 15px;
+  }
+  
+  .product-card {
+    height: 120px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+}
+
+/* Animation for cart updates */
+.badge {
+  transition: all 0.3s ease;
+}
+
+.badge.updated {
+  animation: pulse 0.6s;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Alert styles */
+.alert {
+  border: none;
+  border-radius: 8px;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}

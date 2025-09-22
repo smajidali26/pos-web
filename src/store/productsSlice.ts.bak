@@ -1,0 +1,146 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+// Types
+interface ProductItem {
+  id: number;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  inStock: boolean;
+}
+
+interface ProductsState {
+  items: ProductItem[];
+  categories: string[];
+  selectedCategory: string;
+  searchTerm: string;
+}
+
+interface UpdateStockPayload {
+  id: number;
+  inStock: boolean;
+}
+
+interface AddProductPayload {
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  inStock: boolean;
+}
+
+interface UpdateProductPayload {
+  id: number;
+  name?: string;
+  price?: number;
+  category?: string;
+  image?: string;
+  inStock?: boolean;
+}
+
+const initialState: ProductsState = {
+  items: [
+    {
+      id: 1,
+      name: 'Coffee',
+      price: 3.50,
+      category: 'Beverages',
+      image: '☕',
+      inStock: true
+    },
+    {
+      id: 2,
+      name: 'Sandwich',
+      price: 7.99,
+      category: 'Food',
+      image: '🥪',
+      inStock: true
+    },
+    {
+      id: 3,
+      name: 'Pastry',
+      price: 4.25,
+      category: 'Food',
+      image: '🥐',
+      inStock: true
+    },
+    {
+      id: 4,
+      name: 'Tea',
+      price: 2.75,
+      category: 'Beverages',
+      image: '🍵',
+      inStock: true
+    },
+    {
+      id: 5,
+      name: 'Salad',
+      price: 8.50,
+      category: 'Food',
+      image: '🥗',
+      inStock: true
+    },
+    {
+      id: 6,
+      name: 'Juice',
+      price: 4.00,
+      category: 'Beverages',
+      image: '🧃',
+      inStock: true
+    }
+  ],
+  categories: ['All', 'Beverages', 'Food'],
+  selectedCategory: 'All',
+  searchTerm: '',
+};
+
+const productsSlice = createSlice({
+  name: 'products',
+  initialState,
+  reducers: {
+    setSelectedCategory: (state, action: PayloadAction<string>) => {
+      state.selectedCategory = action.payload;
+    },
+    
+    setSearchTerm: (state, action: PayloadAction<string>) => {
+      state.searchTerm = action.payload;
+    },
+    
+    updateStock: (state, action: PayloadAction<UpdateStockPayload>) => {
+      const { id, inStock } = action.payload;
+      const product = state.items.find(item => item.id === id);
+      if (product) {
+        product.inStock = inStock;
+      }
+    },
+    
+    addProduct: (state, action: PayloadAction<AddProductPayload>) => {
+      state.items.push({
+        ...action.payload,
+        id: Math.max(...state.items.map(item => item.id)) + 1
+      });
+    },
+    
+    updateProduct: (state, action: PayloadAction<UpdateProductPayload>) => {
+      const { id, ...updates } = action.payload;
+      const productIndex = state.items.findIndex(item => item.id === id);
+      if (productIndex !== -1) {
+        state.items[productIndex] = { ...state.items[productIndex], ...updates };
+      }
+    },
+  },
+});
+
+export const { 
+  setSelectedCategory, 
+  setSearchTerm, 
+  updateStock, 
+  addProduct, 
+  updateProduct 
+} = productsSlice.actions;
+
+export default productsSlice.reducer;
+
+// Export types for use in other files
+export type { ProductItem, ProductsState };
