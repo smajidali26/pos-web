@@ -99,7 +99,7 @@ POST /api/auth/logout
 
 ### Environment Variables
 ```bash
-__API_BASE_URL__=http://localhost:5090  # API base URL
+__API_BASE_URL__=http://localhost:9090  # API base URL
 ```
 
 ### Token Expiration

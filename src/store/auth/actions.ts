@@ -18,6 +18,10 @@ export const UPDATE_TOKEN = 'auth/UPDATE_TOKEN';
 export const RESTORE_USER = 'auth/RESTORE_USER';
 export const RESET_AUTH = 'auth/RESET_AUTH';
 
+export const VALIDATE_SESSION_REQUEST = 'auth/VALIDATE_SESSION_REQUEST';
+export const VALIDATE_SESSION_SUCCESS = 'auth/VALIDATE_SESSION_SUCCESS';
+export const VALIDATE_SESSION_FAILURE = 'auth/VALIDATE_SESSION_FAILURE';
+
 // Action Creators
 export const loginRequest = createAction<LoginCredentials>(LOGIN_REQUEST);
 export const loginSuccess = createAction<LoginResponse>(LOGIN_SUCCESS);
@@ -34,3 +38,7 @@ export const refreshTokenFailure = createAction<string>(REFRESH_TOKEN_FAILURE);
 export const updateToken = createAction<TokenUpdatePayload>(UPDATE_TOKEN);
 export const restoreUser = createAction<RestoreUserPayload>(RESTORE_USER);
 export const resetAuth = createAction(RESET_AUTH);
+
+export const validateSessionRequest = createAction(VALIDATE_SESSION_REQUEST);
+export const validateSessionSuccess = createAction<RestoreUserPayload>(VALIDATE_SESSION_SUCCESS);
+export const validateSessionFailure = createAction(VALIDATE_SESSION_FAILURE);

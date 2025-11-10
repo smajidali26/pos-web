@@ -3,22 +3,30 @@ import productsService from '../services/productsService';
 import categoriesService from '../services/categoriesService';
 
 interface Product {
-  id: string | number;
+  id: string;
   name: string;
-  description?: string;
+  description: string;
+  sku: string;
+  barcode: string;
   price: number;
-  originalPrice?: number;
-  categoryId?: string | number;
-  categoryName?: string;
-  category?: string;
-  imageUrl?: string;
-  stock?: number;
-  createdAt?: string;
+  cost: number;
+  stockQuantity: number;
+  minStockLevel: number;
+  reorderLevel: number;
+  reorderQuantity: number;
+  isActive: boolean;
+  categoryId: string;
+  categoryName: string;
+  createdAt: string;
   updatedAt?: string;
+  inventoryValue: number;
+  needsReorder: boolean;
+  isLowStock: boolean;
+  isOutOfStock: boolean;
 }
 
 interface Category {
-  id: string | number;
+  id: string;
   name: string;
   description?: string;
 }
@@ -26,27 +34,36 @@ interface Category {
 interface ProductsParams {
   page: number;
   pageSize: number;
-  sortBy: string;
-  sortDirection: string;
   searchTerm?: string;
-  categoryId?: string | number;
+  categoryId?: string;
+  isActive?: boolean;
+  isLowStock?: boolean;
+  includeInactive?: boolean;
 }
 
 interface ProductsResponse {
-  data?: Product[];
-  products?: Product[];
-  totalCount?: number;
-  totalPages?: number;
+  items: Product[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 interface ProductData {
   name: string;
   description?: string;
+  sku: string;
+  barcode?: string;
   price: number;
-  originalPrice?: number;
-  categoryId?: string | number;
-  imageUrl?: string;
-  stock?: number;
+  cost: number;
+  stockQuantity: number;
+  minStockLevel?: number;
+  reorderLevel?: number;
+  reorderQuantity?: number;
+  categoryId: string;
+  isActive?: boolean;
 }
 
 export const useProducts = () => {
@@ -63,8 +80,8 @@ export const useProducts = () => {
   const [pageSize, setPageSize] = useState<number>(12);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
-  
-  // Sorting state
+
+  // Sorting state (for client-side sorting since API doesn't support it)
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -83,7 +100,7 @@ export const useProducts = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCategoryId, sortBy, sortDirection]);
+  }, [debouncedSearchTerm, selectedCategoryId]);
 
   // Fetch products
   const fetchProducts = useCallback(async (): Promise<void> => {
@@ -93,9 +110,7 @@ export const useProducts = () => {
 
       const params: ProductsParams = {
         page: currentPage,
-        pageSize: pageSize,
-        sortBy: sortBy,
-        sortDirection: sortDirection
+        pageSize: pageSize
       };
 
       // Add optional filters
@@ -107,25 +122,38 @@ export const useProducts = () => {
         params.categoryId = selectedCategoryId;
       }
 
-      const response: ProductsResponse | Product[] = await productsService.getAllProducts(params);
-      
-      // Handle different response formats
-      if (response && typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
-        // Paginated response
-        setProducts(response.data);
-        setTotalCount(response.totalCount || 0);
-        setTotalPages(response.totalPages || Math.ceil((response.totalCount || 0) / pageSize));
-      } else if (Array.isArray(response)) {
-        // Simple array response
-        setProducts(response);
-        setTotalCount(response.length);
-        setTotalPages(Math.ceil(response.length / pageSize));
-      } else if (response && typeof response === 'object' && 'products' in response) {
-        // Single response format
-        setProducts(response.products || []);
-        setTotalCount(response.totalCount || 0);
-        setTotalPages(response.totalPages || Math.ceil((response.totalCount || 0) / pageSize));
-      }
+      const response: ProductsResponse = await productsService.getAllProducts(params);
+
+      // Handle PagedResult<ProductDto> response format
+      let sortedProducts = response.items || [];
+
+      // Apply client-side sorting
+      sortedProducts = [...sortedProducts].sort((a, b) => {
+        let compareValue = 0;
+
+        switch (sortBy) {
+          case 'name':
+            compareValue = a.name.localeCompare(b.name);
+            break;
+          case 'price':
+            compareValue = a.price - b.price;
+            break;
+          case 'category':
+            compareValue = (a.categoryName || '').localeCompare(b.categoryName || '');
+            break;
+          case 'createdAt':
+            compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            break;
+          default:
+            compareValue = 0;
+        }
+
+        return sortDirection === 'asc' ? compareValue : -compareValue;
+      });
+
+      setProducts(sortedProducts);
+      setTotalCount(response.totalCount || 0);
+      setTotalPages(response.totalPages || Math.ceil((response.totalCount || 0) / pageSize));
 
     } catch (err) {
       setError('Failed to fetch products. Please try again.');
@@ -194,11 +222,11 @@ export const useProducts = () => {
   };
 
   // Create product
-  const createProduct = async (productData: ProductData): Promise<Product> => {
+  const createProduct = async (productData: ProductData): Promise<string> => {
     try {
-      const newProduct = await productsService.createProduct(productData);
+      const newProductId = await productsService.createProduct(productData);
       await refreshProducts(); // Refresh the list
-      return newProduct;
+      return newProductId;
     } catch (err) {
       setError('Failed to create product. Please try again.');
       throw err;
@@ -206,19 +234,18 @@ export const useProducts = () => {
   };
 
   // Update product
-  const updateProduct = async (id: string | number, productData: ProductData): Promise<Product> => {
+  const updateProduct = async (id: string, productData: ProductData): Promise<void> => {
     try {
-      const updatedProduct = await productsService.updateProduct(id, productData);
+      await productsService.updateProduct(id, productData);
       await refreshProducts(); // Refresh the list
-      return updatedProduct;
     } catch (err) {
       setError('Failed to update product. Please try again.');
       throw err;
     }
   };
 
-  // Delete product
-  const deleteProduct = async (id: string | number): Promise<void> => {
+  // Delete product (deactivates it)
+  const deleteProduct = async (id: string): Promise<void> => {
     try {
       await productsService.deleteProduct(id);
       await refreshProducts(); // Refresh the list

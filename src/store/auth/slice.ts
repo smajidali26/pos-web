@@ -1,42 +1,40 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AuthState, LoginResponse, TokenUpdatePayload, RestoreUserPayload, User } from './types';
-import { 
-  loginRequest, 
-  loginSuccess, 
-  loginFailure, 
-  logoutRequest, 
-  logoutSuccess, 
+import {
+  loginRequest,
+  loginSuccess,
+  loginFailure,
+  logoutRequest,
+  logoutSuccess,
   logoutFailure,
   refreshTokenRequest,
   refreshTokenSuccess,
   refreshTokenFailure,
+  validateSessionRequest,
+  validateSessionSuccess,
+  validateSessionFailure,
   updateToken,
   restoreUser,
   resetAuth
 } from './actions';
 
-// Check if user is already logged in (token exists)
-const token = localStorage.getItem('authToken');
-const refreshTokenStored = localStorage.getItem('refreshToken');
-const storedUser = localStorage.getItem('authUser');
-
-// Parse stored user data safely
-let parsedUser: User | null = null;
-if (storedUser) {
-  try {
-    parsedUser = JSON.parse(storedUser) as User;
-  } catch (error) {
-    console.warn('Failed to parse stored user data:', error);
-    localStorage.removeItem('authUser');
-  }
-}
+// NOTE: With httpOnly cookies, we cannot check auth state from localStorage
+// Auth state will be restored by validating the session with the backend
+console.log('========================================');
+console.log('AUTH SLICE INITIALIZATION');
+console.log('========================================');
+console.log('Using httpOnly cookie authentication');
+console.log('Initial state: NOT AUTHENTICATED');
+console.log('Auth state will be restored after session validation');
+console.log('========================================');
 
 const initialState: AuthState = {
-  user: parsedUser,
-  token: token || null,
-  refreshToken: refreshTokenStored || null,
-  isAuthenticated: !!token && !!parsedUser,
+  user: null,
+  token: null, // Token stored in httpOnly cookie, not accessible to JS
+  refreshToken: null, // RefreshToken stored in httpOnly cookie
+  isAuthenticated: false, // Will be set to true after successful session validation
   isLoading: false,
+  isSessionChecked: false, // Will be set to true after initial session check
   error: null,
 };
 
@@ -63,6 +61,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken || null;
         state.user = action.payload.user || null;
         state.isAuthenticated = true;
+        state.isSessionChecked = true;
         console.log('Auth slice - new state:', { isAuthenticated: state.isAuthenticated, user: state.user });
       })
       .addCase(loginFailure, (state, action: PayloadAction<string>) => {
@@ -75,16 +74,22 @@ const authSlice = createSlice({
       })
       // Logout actions
       .addCase(logoutRequest, (state) => {
+        console.log('🔴 LOGOUT REQUEST REDUCER - Setting isLoading = true');
         state.isLoading = true;
         state.error = null;
+        // Don't clear auth state here - wait for logoutSuccess
+        // Clearing isAuthenticated here causes immediate redirect before saga runs
       })
       .addCase(logoutSuccess, (state) => {
+        console.log('✅ LOGOUT SUCCESS REDUCER - Setting isLoading = false');
         state.isLoading = false;
         state.error = null;
+        // Clear auth state on logout success
+        state.isAuthenticated = false;
         state.user = null;
         state.token = null;
         state.refreshToken = null;
-        state.isAuthenticated = false;
+        console.log('Current state after logoutSuccess:', { isLoading: state.isLoading, isAuthenticated: state.isAuthenticated });
       })
       .addCase(logoutFailure, (state, action: PayloadAction<string>) => {
         state.isLoading = false;
@@ -134,6 +139,29 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.isLoading = false;
         state.error = null;
+      })
+      // Session validation actions
+      // NOTE: Don't set isLoading during validation - it's a background task
+      .addCase(validateSessionRequest, (state) => {
+        // Don't set isLoading - session validation happens in background
+        state.error = null;
+      })
+      .addCase(validateSessionSuccess, (state, action: PayloadAction<RestoreUserPayload>) => {
+        console.log('Session validation success - restoring user:', action.payload.user);
+        // Don't set isLoading - this is automatic restoration
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.isSessionChecked = true;
+        state.error = null;
+      })
+      .addCase(validateSessionFailure, (state) => {
+        console.log('Session validation failed - staying unauthenticated');
+        // Don't set isLoading - this is silent failure
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        state.refreshToken = null;
+        state.isSessionChecked = true;
       });
   }
 });

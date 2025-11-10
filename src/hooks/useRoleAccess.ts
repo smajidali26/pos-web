@@ -23,29 +23,47 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
 export const PERMISSIONS = {
   // Dashboard access
   VIEW_DASHBOARD: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
-  
+
   // Categories management
   VIEW_CATEGORIES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   CREATE_CATEGORIES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   UPDATE_CATEGORIES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   DELETE_CATEGORIES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
-  
-  // Products management
-  VIEW_PRODUCTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER, USER_ROLES.CASHIER],
+
+  // Products management - Owner and Manager only (Cashier removed)
+  VIEW_PRODUCTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   CREATE_PRODUCTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   UPDATE_PRODUCTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
   DELETE_PRODUCTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
-  
-  // Sales
-  VIEW_SALES: [USER_ROLES.OWNER, USER_ROLES.MANAGER, USER_ROLES.CASHIER],
-  CREATE_SALES: [USER_ROLES.OWNER, USER_ROLES.MANAGER, USER_ROLES.CASHIER],
-  
+
+  // Vendors management - Owner and Manager only
+  VIEW_VENDORS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+  CREATE_VENDORS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+  UPDATE_VENDORS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+  ACTIVATE_DEACTIVATE_VENDORS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+
+  // Customers management - Manager only (Owner removed)
+  VIEW_CUSTOMERS: [USER_ROLES.MANAGER],
+  CREATE_CUSTOMERS: [USER_ROLES.MANAGER],
+  UPDATE_CUSTOMERS: [USER_ROLES.MANAGER],
+  DELETE_CUSTOMERS: [USER_ROLES.MANAGER],
+
+  // Orders management - Cashier only for creating, Manager/Cashier for viewing
+  VIEW_ORDERS: [USER_ROLES.MANAGER, USER_ROLES.CASHIER],
+  CREATE_ORDERS: [USER_ROLES.CASHIER],
+  CANCEL_ORDERS: [USER_ROLES.MANAGER],
+  REFUND_ORDERS: [USER_ROLES.MANAGER],
+
+  // Sales - Owner and Manager only (Cashier removed)
+  VIEW_SALES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+  CREATE_SALES: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
+
   // Reports
   VIEW_REPORTS: [USER_ROLES.OWNER, USER_ROLES.MANAGER],
-  
+
   // User management
   MANAGE_USERS: [USER_ROLES.OWNER],
-  
+
   // System settings
   MANAGE_SETTINGS: [USER_ROLES.OWNER, USER_ROLES.MANAGER]
 } as const;
@@ -76,15 +94,17 @@ export const useRoleAccess = () => {
   const getUserRole = (): UserRole | null => {
     if (!user || !isAuthenticated) {
       console.log('useRoleAccess: No user or not authenticated', { user, isAuthenticated });
-      return null;    
+      return null;
     }
-    
+
     // Debug: Log the user object structure
     console.log('useRoleAccess: User object:', user);
+    console.log('useRoleAccess: roleName field:', user.roleName);
+    console.log('useRoleAccess: role field:', user.role);
     
     // Try different possible role field names and normalize to lowercase
     let role: string | null = null;
-    
+
     if (user.roleName) {
       role = user.roleName.toLowerCase();
     } else if (user.role && typeof user.role === 'string') {
@@ -97,7 +117,13 @@ export const useRoleAccess = () => {
       // Default to employee if no role found
       role = USER_ROLES.EMPLOYEE;
     }
-    
+
+    // Map 'admin' to 'owner' since ADMIN role was removed
+    if (role === 'admin') {
+      console.log('useRoleAccess: Mapping admin role to owner');
+      role = USER_ROLES.OWNER;
+    }
+
     console.log('useRoleAccess: Detected role:', role);
     return role as UserRole;
   };
@@ -168,7 +194,7 @@ export const useRoleAccess = () => {
 
   // Check if user can access products
   const canAccessProducts = (): boolean => hasPermission('VIEW_PRODUCTS');
-
+console.log('useRoleAccess: canAccessProducts =', canAccessProducts());
   // Check if user can manage products
   const canManageProducts = (): boolean => 
     hasPermission('CREATE_PRODUCTS') && 
@@ -181,6 +207,30 @@ export const useRoleAccess = () => {
   // Check if user can access reports
   const canAccessReports = (): boolean => hasPermission('VIEW_REPORTS');
 
+  // Check if user can access customers
+  const canAccessCustomers = (): boolean => hasPermission('VIEW_CUSTOMERS');
+
+  // Check if user can manage customers
+  const canManageCustomers = (): boolean =>
+    hasPermission('CREATE_CUSTOMERS') &&
+    hasPermission('UPDATE_CUSTOMERS') &&
+    hasPermission('DELETE_CUSTOMERS');
+
+  // Check if user can access orders
+  const canAccessOrders = (): boolean => hasPermission('VIEW_ORDERS');
+
+  // Check if user can create orders
+  const canCreateOrders = (): boolean => hasPermission('CREATE_ORDERS');
+
+  // Check if user can access vendors
+  const canAccessVendors = (): boolean => hasPermission('VIEW_VENDORS');
+
+  // Check if user can manage vendors
+  const canManageVendors = (): boolean =>
+    hasPermission('CREATE_VENDORS') &&
+    hasPermission('UPDATE_VENDORS') &&
+    hasPermission('ACTIVATE_DEACTIVATE_VENDORS');
+
   return {
     userRole: getUserRole(),
     roleDisplayName: getRoleDisplayName(),
@@ -192,6 +242,12 @@ export const useRoleAccess = () => {
     canManageCategories,
     canAccessProducts,
     canManageProducts,
+    canAccessVendors,
+    canManageVendors,
+    canAccessCustomers,
+    canManageCustomers,
+    canAccessOrders,
+    canCreateOrders,
     canAccessSales,
     canAccessReports,
     // Export constants for use in components

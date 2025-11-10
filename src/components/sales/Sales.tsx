@@ -1,9 +1,182 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useRoleAccess from '../../hooks/useRoleAccess';
+import ordersService, { Order, OrderStatus } from '../../services/ordersService';
+import { formatCurrency } from '../../utils/currency';
+import { toast } from 'react-toastify';
 
 const Sales: React.FC = () => {
-  const { canAccessSales } = useRoleAccess();
+  const navigate = useNavigate();
+  const { canAccessSales, canCreateOrders } = useRoleAccess();
   const userCanAccessSales = canAccessSales();
+
+  const [todaysSales, setTodaysSales] = useState(0);
+  const [transactionCount, setTransactionCount] = useState(0);
+  const [averageSale, setAverageSale] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Date filter states
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'month' | 'custom'>('today');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    if (userCanAccessSales) {
+      fetchSalesData();
+    }
+  }, [userCanAccessSales, dateFilter, startDate, endDate]);
+
+  const getDateRange = (): { start: string; end: string } => {
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+
+    switch (dateFilter) {
+      case 'today':
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+
+      case 'yesterday':
+        start.setDate(now.getDate() - 1);
+        start.setHours(0, 0, 0, 0);
+        end.setDate(now.getDate() - 1);
+        end.setHours(23, 59, 59, 999);
+        break;
+
+      case 'week':
+        // Get start of week (Sunday)
+        const day = now.getDay();
+        start.setDate(now.getDate() - day);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+
+      case 'month':
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+
+      case 'custom':
+        if (startDate && endDate) {
+          start = new Date(startDate);
+          start.setHours(0, 0, 0, 0);
+          end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+        } else {
+          // Default to today if custom dates not set
+          start.setHours(0, 0, 0, 0);
+          end.setHours(23, 59, 59, 999);
+        }
+        break;
+    }
+
+    return {
+      start: start.toISOString(),
+      end: end.toISOString()
+    };
+  };
+
+  const fetchSalesData = async () => {
+    try {
+      setLoading(true);
+
+      // Get date range based on filter
+      const dateRange = getDateRange();
+
+      // Fetch completed orders for the selected date range
+      const completedResponse = await ordersService.getAll({
+        status: OrderStatus.Completed,
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+        pageSize: 1000
+      });
+
+      const completedOrders = completedResponse.data.items;
+
+      // Calculate sales for selected period
+      const totalSales = completedOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+      setTodaysSales(totalSales);
+      setTransactionCount(completedOrders.length);
+      setAverageSale(completedOrders.length > 0 ? totalSales / completedOrders.length : 0);
+
+      // Fetch pending orders (not date-filtered)
+      const pendingResponse = await ordersService.getAll({
+        status: OrderStatus.Pending,
+        pageSize: 1000
+      });
+      setPendingOrders(pendingResponse.data.totalCount);
+
+      // Set recent orders from selected period
+      setRecentOrders(completedOrders.slice(0, 100));
+
+    } catch (err: any) {
+      console.error('Failed to fetch sales data:', err);
+      toast.error('Failed to load sales data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = (orderId: string) => {
+    // Navigate to orders page or show details modal
+    navigate(`/orders`);
+  };
+
+  const getPaymentMethodBadge = (method: string) => {
+    switch (method.toLowerCase()) {
+      case 'cash':
+        return 'success';
+      case 'card':
+        return 'primary';
+      case 'mixed':
+        return 'info';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getFilterLabel = (): string => {
+    switch (dateFilter) {
+      case 'today':
+        return "Today's";
+      case 'yesterday':
+        return "Yesterday's";
+      case 'week':
+        return "This Week's";
+      case 'month':
+        return "This Month's";
+      case 'custom':
+        if (startDate && endDate) {
+          const start = new Date(startDate).toLocaleDateString();
+          const end = new Date(endDate).toLocaleDateString();
+          return `${start} - ${end}`;
+        }
+        return 'Custom Range';
+      default:
+        return "Today's";
+    }
+  };
+
+  const handleDateFilterChange = (filter: 'today' | 'yesterday' | 'week' | 'month' | 'custom') => {
+    setDateFilter(filter);
+    if (filter !== 'custom') {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  const filteredOrders = searchTerm
+    ? recentOrders.filter(
+        (order) =>
+          order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.customerName?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : recentOrders;
 
   if (!userCanAccessSales) {
     return (
@@ -25,199 +198,245 @@ const Sales: React.FC = () => {
             <i className="bi bi-cart-check me-2 text-primary"></i>
             Sales
           </h2>
-          <p className="text-muted mb-0">Process sales transactions and manage orders</p>
+          <p className="text-muted mb-0">View sales transactions and performance</p>
         </div>
-        <button className="btn btn-primary">
-          <i className="bi bi-plus-circle me-2"></i>
-          New Sale
-        </button>
+        {canCreateOrders() && (
+          <button className="btn btn-primary" onClick={() => navigate('/orders')}>
+            <i className="bi bi-plus-circle me-2"></i>
+            New Order
+          </button>
+        )}
+      </div>
+
+      {/* Date Filter */}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body py-3">
+          <div className="row align-items-center g-2">
+            <div className="col-auto">
+              <label className="form-label mb-0 text-muted small">
+                <i className="bi bi-calendar-range me-1"></i>
+                Period:
+              </label>
+            </div>
+            <div className="col">
+              <div className="btn-group btn-group-sm" role="group">
+                <button
+                  type="button"
+                  className={`btn ${dateFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleDateFilterChange('today')}
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${dateFilter === 'yesterday' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleDateFilterChange('yesterday')}
+                >
+                  Yesterday
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${dateFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleDateFilterChange('week')}
+                >
+                  This Week
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${dateFilter === 'month' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleDateFilterChange('month')}
+                >
+                  This Month
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${dateFilter === 'custom' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => handleDateFilterChange('custom')}
+                >
+                  Custom
+                </button>
+              </div>
+            </div>
+
+            {dateFilter === 'custom' && (
+              <>
+                <div className="col-auto">
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    placeholder="Start Date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{ width: '150px' }}
+                  />
+                </div>
+                <div className="col-auto">
+                  <span className="text-muted">to</span>
+                </div>
+                <div className="col-auto">
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    placeholder="End Date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    style={{ width: '150px' }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Sales Dashboard */}
-      <div className="row mb-4">
-        <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <i className="bi bi-currency-dollar text-success" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <div className="small text-muted">Today's Sales</div>
-                  <div className="h4 mb-0">$2,543.67</div>
-                </div>
-              </div>
-            </div>
+      {loading ? (
+        <div className="text-center p-4">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
           </div>
         </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <i className="bi bi-receipt text-primary" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <div className="small text-muted">Transactions</div>
-                  <div className="h4 mb-0">47</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <i className="bi bi-graph-up text-info" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <div className="small text-muted">Average Sale</div>
-                  <div className="h4 mb-0">$54.12</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0">
-                  <i className="bi bi-clock text-warning" style={{ fontSize: '2rem' }}></i>
-                </div>
-                <div className="flex-grow-1 ms-3">
-                  <div className="small text-muted">Pending Orders</div>
-                  <div className="h4 mb-0">3</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="card border-0 shadow-sm">
-        <div className="card-header bg-white">
-          <div className="d-flex justify-content-between align-items-center">
-            <h5 className="card-title mb-0">Recent Transactions</h5>
-            <div className="d-flex gap-2">
-              <input
-                type="text"
-                className="form-control form-control-sm"
-                placeholder="Search transactions..."
-                style={{ width: '200px' }}
-              />
-              <button className="btn btn-outline-secondary btn-sm">
-                <i className="bi bi-funnel"></i> Filter
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Date & Time</th>
-                  <th>Customer</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Payment Method</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>#TXN-2024-001</td>
-                  <td>Dec 12, 2024 2:30 PM</td>
-                  <td>John Doe</td>
-                  <td>3 items</td>
-                  <td><strong>$67.89</strong></td>
-                  <td>
-                    <span className="badge bg-primary">Credit Card</span>
-                  </td>
-                  <td>
-                    <span className="badge bg-success">Completed</span>
-                  </td>
-                  <td>
-                    <div className="btn-group btn-group-sm">
-                      <button className="btn btn-outline-primary" title="View Details">
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button className="btn btn-outline-secondary" title="Print Receipt">
-                        <i className="bi bi-printer"></i>
-                      </button>
+      ) : (
+        <>
+          <div className="row mb-4 g-3">
+            <div className="col-md-3">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body py-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-currency-dollar text-success me-3" style={{ fontSize: '1.75rem' }}></i>
+                      <span className="text-muted small">{getFilterLabel()} Sales:</span>
                     </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#TXN-2024-002</td>
-                  <td>Dec 12, 2024 1:45 PM</td>
-                  <td>Jane Smith</td>
-                  <td>1 item</td>
-                  <td><strong>$29.99</strong></td>
-                  <td>
-                    <span className="badge bg-success">Cash</span>
-                  </td>
-                  <td>
-                    <span className="badge bg-success">Completed</span>
-                  </td>
-                  <td>
-                    <div className="btn-group btn-group-sm">
-                      <button className="btn btn-outline-primary" title="View Details">
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button className="btn btn-outline-secondary" title="Print Receipt">
-                        <i className="bi bi-printer"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#TXN-2024-003</td>
-                  <td>Dec 12, 2024 12:15 PM</td>
-                  <td>Bob Wilson</td>
-                  <td>5 items</td>
-                  <td><strong>$134.50</strong></td>
-                  <td>
-                    <span className="badge bg-info">Debit Card</span>
-                  </td>
-                  <td>
-                    <span className="badge bg-warning">Pending</span>
-                  </td>
-                  <td>
-                    <div className="btn-group btn-group-sm">
-                      <button className="btn btn-outline-primary" title="View Details">
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button className="btn btn-outline-warning" title="Process Payment">
-                        <i className="bi bi-credit-card"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                    <div className="h5 mb-0 fw-bold">{formatCurrency(todaysSales)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      {/* Info */}
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="alert alert-info">
-            <i className="bi bi-info-circle me-2"></i>
-            <strong>Sales Module:</strong> This section will integrate with your POS system to process real transactions and manage sales data.
+            <div className="col-md-3">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body py-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-receipt text-primary me-3" style={{ fontSize: '1.75rem' }}></i>
+                      <span className="text-muted small">Transactions:</span>
+                    </div>
+                    <div className="h5 mb-0 fw-bold">{transactionCount}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body py-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-graph-up text-info me-3" style={{ fontSize: '1.75rem' }}></i>
+                      <span className="text-muted small">Average Sale:</span>
+                    </div>
+                    <div className="h5 mb-0 fw-bold">{formatCurrency(averageSale)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-3">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body py-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <i className="bi bi-clock text-warning me-3" style={{ fontSize: '1.75rem' }}></i>
+                      <span className="text-muted small">Pending Orders:</span>
+                    </div>
+                    <div className="h5 mb-0 fw-bold">{pendingOrders}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Recent Transactions */}
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-0">{getFilterLabel()} Completed Transactions</h5>
+                <div className="d-flex gap-2">
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="Search transactions..."
+                    style={{ width: '200px' }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <button className="btn btn-outline-secondary btn-sm" onClick={fetchSalesData}>
+                    <i className="bi bi-arrow-clockwise"></i> Refresh
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="card-body">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center p-4 text-muted">
+                  <i className="bi bi-receipt" style={{ fontSize: '3rem' }}></i>
+                  <p className="mt-2">
+                    {searchTerm
+                      ? 'No transactions found matching your search'
+                      : `No completed transactions for ${getFilterLabel().toLowerCase()} period`
+                    }
+                  </p>
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Order #</th>
+                        <th>Date & Time</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Cashier</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredOrders.map((order) => (
+                        <tr key={order.id}>
+                          <td>#{order.orderNumber}</td>
+                          <td>{new Date(order.orderDate).toLocaleString()}</td>
+                          <td>{order.customerName || 'Walk-in Customer'}</td>
+                          <td>{order.orderItems.length} item{order.orderItems.length !== 1 ? 's' : ''}</td>
+                          <td><strong>{formatCurrency(order.totalAmount)}</strong></td>
+                          <td>
+                            <span className={`badge bg-${getPaymentMethodBadge(order.paymentMethod)}`}>
+                              {order.paymentMethod}
+                            </span>
+                          </td>
+                          <td>{order.cashierName || 'Unknown'}</td>
+                          <td>
+                            <div className="btn-group btn-group-sm">
+                              <button
+                                className="btn btn-outline-primary"
+                                title="View Details"
+                                onClick={() => handleViewDetails(order.id)}
+                              >
+                                <i className="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

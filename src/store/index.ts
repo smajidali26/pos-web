@@ -3,6 +3,9 @@ import createSagaMiddleware from 'redux-saga';
 import { authReducer } from './auth';
 import { cartReducer } from './cart';
 import { productsReducer } from './products';
+import customersReducer from './customers/customersSlice';
+import ordersReducer from './orders/ordersSlice';
+import reportsReducer from './reports/reportsSlice';
 import rootSaga from './sagas';
 
 // Create saga middleware
@@ -13,6 +16,9 @@ export const store = configureStore({
     auth: authReducer,
     cart: cartReducer,
     products: productsReducer,
+    customers: customersReducer,
+    orders: ordersReducer,
+    reports: reportsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

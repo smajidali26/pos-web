@@ -31,6 +31,7 @@ export interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isSessionChecked: boolean; // Track if we've checked for existing session
   error: string | null;
 }
 

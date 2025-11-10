@@ -1,15 +1,18 @@
 import apiClient from './apiClient';
 
-// Types for categories
+// Types for categories matching backend CategoryDto
 export interface Category {
-  categoryId?: number;
-  categoryName: string;
-  description?: string;
-  picture?: string;
-  isActive?: boolean;
-  createdDate?: string;
-  updatedDate?: string;
-  productCount?: number;
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  parentCategoryId?: string;
+  parentCategoryName?: string;
+  subCategories: Category[];
+  createdAt: string;
+  updatedAt?: string;
+  subCategoryCount: number;
+  productCount: number;
 }
 
 export interface CategoryListResponse {
@@ -24,17 +27,17 @@ export interface CategoryResponse {
 }
 
 export interface CreateCategoryData {
-  categoryName: string;
+  name: string;
   description?: string;
-  picture?: string;
   isActive?: boolean;
+  parentCategoryId?: string;
 }
 
 export interface UpdateCategoryData {
-  categoryName?: string;
-  description?: string;
-  picture?: string;
-  isActive?: boolean;
+  id: string;
+  name: string;
+  description: string;
+  parentCategoryId?: string;
 }
 
 export interface Product {
@@ -63,38 +66,41 @@ export interface ProductsByCategoryResponse {
 
 export const categoriesService = {
   // Get all categories
-  getAllCategories: async (): Promise<CategoryListResponse> => {
-    const response = await apiClient.get<CategoryListResponse>('/api/Categories');
+  getAllCategories: async (): Promise<Category[]> => {
+    const response = await apiClient.get<Category[]>('/api/Categories');
     return response.data;
   },
 
   // Get category by ID
-  getCategoryById: async (id: number): Promise<CategoryResponse> => {
-    const response = await apiClient.get<CategoryResponse>(`/api/Categories/${id}`);
+  getCategoryById: async (id: string): Promise<Category> => {
+    const response = await apiClient.get<Category>(`/api/Categories/${id}`);
     return response.data;
   },
 
   // Create new category
-  createCategory: async (categoryData: CreateCategoryData): Promise<CategoryResponse> => {
-    const response = await apiClient.post<CategoryResponse>('/api/Categories', categoryData);
+  createCategory: async (categoryData: CreateCategoryData): Promise<string> => {
+    const response = await apiClient.post<string>('/api/Categories', categoryData);
     return response.data;
   },
 
   // Update category
-  updateCategory: async (id: number, categoryData: UpdateCategoryData): Promise<CategoryResponse> => {
-    const response = await apiClient.put<CategoryResponse>(`/api/Categories/${id}`, categoryData);
-    return response.data;
+  updateCategory: async (id: string, categoryData: Omit<UpdateCategoryData, 'id'>): Promise<void> => {
+    // Backend expects the ID in both URL and body
+    const updateData: UpdateCategoryData = {
+      ...categoryData,
+      id: id
+    };
+    await apiClient.put(`/api/Categories/${id}`, updateData);
   },
 
   // Delete category
-  deleteCategory: async (id: number): Promise<{ message: string }> => {
-    const response = await apiClient.delete<{ message: string }>(`/api/Categories/${id}`);
-    return response.data;
+  deleteCategory: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/Categories/${id}`);
   },
 
-  // Get products by category
-  getProductsByCategory: async (categoryId: number): Promise<ProductsByCategoryResponse> => {
-    const response = await apiClient.get<ProductsByCategoryResponse>(`/api/Categories/${categoryId}/products`);
+  // Get products by category - returns array of products
+  getProductsByCategory: async (categoryId: string): Promise<Product[]> => {
+    const response = await apiClient.get<Product[]>(`/api/Products/category/${categoryId}`);
     return response.data;
   }
 };
