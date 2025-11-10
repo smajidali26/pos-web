@@ -44,9 +44,9 @@ interface UserProfile {
 }
 
 interface ValidateTokenResponse {
-  valid: boolean;
+  isValid: boolean;
   user?: UserProfile;
-  message?: string;
+  errorMessage?: string;
 }
 
 export const authService = {
@@ -59,42 +59,24 @@ export const authService = {
   // Logout user
   logout: async (): Promise<void> => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        await apiClient.post('/api/auth/logout', { refreshToken });
-      }
+      // Backend will clear httpOnly cookies
+      await apiClient.post('/api/auth/logout');
     } catch (error) {
-      console.warn('Logout request failed, but removing local tokens');
+      // Don't throw error - logout should always succeed client-side
+      // Backend may fail if token is already invalid
+      console.warn('Logout request failed, but clearing client state anyway:', error);
     }
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
   },
 
   // Refresh access token
   refreshToken: async (): Promise<RefreshTokenResponse> => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const response = await apiClient.post<RefreshTokenResponse>('/api/auth/refresh', {
-        refreshToken: refreshToken
-      });
-
-      const { token, refreshToken: newRefreshToken } = response.data;
-      
-      // Update stored tokens
-      localStorage.setItem('authToken', token);
-      if (newRefreshToken) {
-        localStorage.setItem('refreshToken', newRefreshToken);
-      }
-
+      // Backend will read refreshToken from httpOnly cookie
+      // and set new tokens as httpOnly cookies
+      const response = await apiClient.post<RefreshTokenResponse>('/api/auth/refresh');
       return response.data;
     } catch (error) {
-      // Refresh failed, clear tokens
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
+      // Refresh failed, backend will clear cookies
       throw error;
     }
   },
@@ -108,18 +90,28 @@ export const authService = {
   // Check if token is valid
   validateToken: async (): Promise<ValidateTokenResponse> => {
     try {
-      const response = await apiClient.get<ValidateTokenResponse>('/api/auth/validate');
+      // Backend reads token from cookie, no body needed
+      const response = await apiClient.post<ValidateTokenResponse>('/api/auth/validate-token', {});
       return response.data;
-    } catch (error) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      throw error;
+    } catch (error: any) {
+      // Return invalid response instead of throwing
+      // This handles cases where no cookie exists or backend returns error
+      console.log('Validate token error:', error.response?.status, error.response?.data);
+      return {
+        isValid: false,
+        errorMessage: error.response?.data?.message || error.message || 'No valid session'
+      };
     }
   },
 
-  // Check if we have a refresh token
-  hasRefreshToken: (): boolean => {
-    return !!localStorage.getItem('refreshToken');
+  // Check if we have a valid session (by validating token)
+  hasValidSession: async (): Promise<boolean> => {
+    try {
+      const result = await authService.validateToken();
+      return result.isValid;
+    } catch (error) {
+      return false;
+    }
   },
 };
 

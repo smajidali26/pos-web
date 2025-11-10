@@ -17,7 +17,7 @@ A modern Point of Sale (POS) web application built with React, Redux, and Bootst
 
 - Node.js (v24.6.0 or later)
 - npm (v11.5.1 or later)
-- Authentication API running on http://localhost:5090
+- Authentication API running on http://localhost:9090
 
 ### Installation
 
@@ -32,7 +32,7 @@ npm install
 copy .env.example .env
 
 # Edit .env file to match your API configuration
-# Default API URL is http://localhost:5090
+# Default API URL is http://localhost:9090
 ```
 
 3. Start the development server:
@@ -47,7 +47,7 @@ npm run build
 
 ### Authentication API
 
-The application expects an authentication API running on `http://localhost:5090` with the following endpoint:
+The application expects an authentication API running on `http://localhost:9090` with the following endpoint:
 
 - `POST /api/auth/login` - User login
   - Request body: `{ "username": "string", "password": "string" }`

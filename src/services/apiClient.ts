@@ -17,13 +17,14 @@ interface RefreshTokenResponse {
   refreshToken?: string;
 }
 
-// Create axios instance
+// Create axios instance with credentials enabled for httpOnly cookies
 const apiClient: AxiosInstance = axios.create({
-  baseURL: config.API_BASE_URL || 'http://localhost:9090',
+  baseURL: config.API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable sending cookies with requests
 });
 
 // Flag to prevent multiple simultaneous refresh attempts
@@ -42,13 +43,12 @@ const processQueue = (error: any, token: string | null = null): void => {
   failedQueue = [];
 };
 
-// Request interceptor to add auth token
+// Request interceptor - no need to add auth token manually
+// Cookies are sent automatically with withCredentials: true
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Token is sent automatically via httpOnly cookie
+    // No manual Authorization header needed
     return config;
   },
   (error: any) => {
@@ -64,82 +64,82 @@ apiClient.interceptors.response.use(
   async (error: any) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
+    // Handle 401 errors (Unauthorized)
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log('========================================');
+      console.log('API CLIENT - 401 UNAUTHORIZED ERROR');
+      console.log('========================================');
+      console.log('Request URL:', originalRequest.url);
+
+      // Skip refresh for login and refresh endpoints
+      if (originalRequest.url?.includes('/api/auth/login') ||
+          originalRequest.url?.includes('/api/auth/refresh')) {
+        console.log('Login or refresh endpoint failed, not retrying');
+        console.log('========================================');
+        return Promise.reject(error);
+      }
+
+      // If already refreshing, queue this request
       if (isRefreshing) {
-        // If already refreshing, queue this request
+        console.log('Already refreshing token, queuing request...');
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers = {
-            ...originalRequest.headers,
-            Authorization: `Bearer ${token}`
-          };
+        }).then(() => {
+          // Retry original request with new cookie
           return apiClient(originalRequest);
         }).catch(err => {
           return Promise.reject(err);
         });
       }
 
+      // Try to refresh the token
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        // Attempt to refresh the token
+        console.log('Attempting to refresh token via cookie...');
+        // Backend will read refreshToken from httpOnly cookie
         const response = await axios.post<RefreshTokenResponse>(
-          `${config.API_BASE_URL || 'http://localhost:9090'}/api/auth/refresh`, 
-          {
-            refreshToken: refreshToken
-          }
+          `${config.API_BASE_URL}/api/auth/refresh`,
+          {}, // No body needed, backend reads cookie
+          { withCredentials: true } // Send cookies
         );
 
-        const { token, refreshToken: newRefreshToken } = response.data;
-        
-        // Update stored tokens
-        localStorage.setItem('authToken', token);
-        if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
-        }
+        console.log('✅ Token refresh successful - new cookies set by backend');
 
-        // Update the authorization header for the original request
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${token}`
-        };
-        
-        // Process the queue with the new token
-        processQueue(null, token);
-        
-        // Retry the original request
+        // Process the queue - no token needed, cookies are automatic
+        processQueue(null, '');
+
+        // Retry the original request (with new cookies)
+        console.log('Retrying original request with new cookies');
+        console.log('========================================');
         return apiClient(originalRequest);
 
       } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
+        console.error('❌ Token refresh failed:', refreshError);
         processQueue(refreshError, null);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
-        
-        // Dispatch logout action if we're in a Redux context
+
+        console.log('Session expired, dispatching logout');
+
+        // Dispatch logout action
         if ((window as any).store) {
           (window as any).store.dispatch({ type: 'auth/resetAuth' });
         }
-        
-        // Redirect to login if not already there
+
+        // Redirect to login
         if (window.location.pathname !== '/login') {
+          console.log('Redirecting to login');
           window.location.href = '/login';
         }
-        
+
+        console.log('========================================');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
+    // Not a 401 error, just return the error
     return Promise.reject(error);
   }
 );

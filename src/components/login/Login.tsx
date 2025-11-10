@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { loginRequest } from '../../store/auth';
 import { AppDispatch, RootState } from '../../store';
+import { USER_ROLES } from '../../hooks/useRoleAccess';
 import LoginHeader from './LoginHeader';
 import LoginError from './LoginError';
 import LoginForm from './LoginForm';
@@ -14,7 +16,46 @@ interface LoginFormData {
 
 const Login: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { isLoading, error } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const hasRedirected = useRef(false);
+
+  // Debug: Log auth state changes
+  useEffect(() => {
+    console.log('📋 LOGIN COMPONENT - Auth state:', { isLoading, isAuthenticated, error });
+  }, [isLoading, isAuthenticated, error]);
+
+  // Redirect to role-specific default page after successful login
+  useEffect(() => {
+    if (isAuthenticated && user && !hasRedirected.current) {
+      const userRole = user.roleName?.toLowerCase();
+
+      // Define default pages for each role
+      let defaultPage = '/dashboard'; // Default fallback
+
+      if (userRole === USER_ROLES.CASHIER) {
+        defaultPage = '/orders';
+        console.log('Login: Cashier authenticated, redirecting to orders');
+      } else if (userRole === USER_ROLES.OWNER || userRole === USER_ROLES.MANAGER) {
+        defaultPage = '/dashboard';
+        console.log(`Login: ${user.roleName} authenticated, redirecting to dashboard`);
+      } else if (userRole === USER_ROLES.EMPLOYEE) {
+        defaultPage = '/sales';
+        console.log('Login: Employee authenticated, redirecting to sales');
+      }
+
+      hasRedirected.current = true;
+      // Use replace to avoid keeping login page in history
+      navigate(defaultPage, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Reset redirect flag when component unmounts (logout)
+  useEffect(() => {
+    return () => {
+      hasRedirected.current = false;
+    };
+  }, []);
 
   const handleSubmit = (formData: LoginFormData) => {
     dispatch(loginRequest(formData));

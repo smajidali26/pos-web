@@ -1,11 +1,76 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useCategories from '../../hooks/useCategories';
 import useRoleAccess from '../../hooks/useRoleAccess';
+import CategoryModal from './CategoryModal';
 
 const Categories: React.FC = () => {
-  const { categories, loading, error } = useCategories();
+  const {
+    categories,
+    loading,
+    error,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    clearError
+  } = useCategories();
   const { canManageCategories } = useRoleAccess();
   const userCanManageCategories = canManageCategories();
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const handleOpenAddModal = () => {
+    setSelectedCategory(null);
+    setModalError(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (category: any) => {
+    setSelectedCategory(category);
+    setModalError(null);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedCategory(null);
+    setModalError(null);
+  };
+
+  const handleSaveCategory = async (categoryData: any) => {
+    try {
+      setModalLoading(true);
+      setModalError(null);
+
+      if (selectedCategory) {
+        // Update existing category
+        await updateCategory(selectedCategory.id, categoryData);
+      } else {
+        // Create new category
+        await createCategory(categoryData);
+      }
+
+      handleCloseModal();
+    } catch (err: any) {
+      console.error('Error saving category:', err);
+      setModalError(err.response?.data?.message || 'Failed to save category. Please try again.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      try {
+        await deleteCategory(id);
+      } catch (err) {
+        console.error('Error deleting category:', err);
+      }
+    }
+  };
 
   return (
     <div className="container-fluid py-4">
@@ -21,7 +86,7 @@ const Categories: React.FC = () => {
           </p>
         </div>
         {userCanManageCategories && (
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={handleOpenAddModal}>
             <i className="bi bi-plus-circle me-2"></i>
             Add Category
           </button>
@@ -55,7 +120,7 @@ const Categories: React.FC = () => {
         <div className="row">
           {categories.length > 0 ? (
             categories.map((category) => (
-              <div key={category.id} className="col-md-6 col-lg-4 col-xl-3 mb-4">
+              <div key={category.id} className="col-md-4 col-lg-3 col-xl-2 mb-4">
                 <div className="card h-100 border-0 shadow-sm">
                   <div className="card-body">
                     <div className="d-flex align-items-center mb-3">
@@ -63,8 +128,7 @@ const Categories: React.FC = () => {
                         <i className="bi bi-tag text-primary" style={{ fontSize: '2rem' }}></i>
                       </div>
                       <div className="flex-grow-1 ms-3">
-                        <h5 className="card-title mb-1">{category.name}</h5>
-                        <small className="text-muted">ID: {category.id}</small>
+                        <h5 className="card-title mb-0">{category.name}</h5>
                       </div>
                     </div>
                     
@@ -76,15 +140,23 @@ const Categories: React.FC = () => {
                     
                     <div className="d-flex justify-content-between align-items-center">
                       <span className="badge bg-secondary">
-                        0 products {/* This would come from a products count */}
+                        {category.productCount} {category.productCount === 1 ? 'product' : 'products'}
                       </span>
-                      
+
                       {userCanManageCategories && (
                         <div className="btn-group btn-group-sm">
-                          <button className="btn btn-outline-primary" title="Edit Category">
+                          <button
+                            className="btn btn-outline-primary"
+                            title="Edit Category"
+                            onClick={() => handleOpenEditModal(category)}
+                          >
                             <i className="bi bi-pencil"></i>
                           </button>
-                          <button className="btn btn-outline-danger" title="Delete Category">
+                          <button
+                            className="btn btn-outline-danger"
+                            title="Delete Category"
+                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                          >
                             <i className="bi bi-trash"></i>
                           </button>
                         </div>
@@ -104,7 +176,7 @@ const Categories: React.FC = () => {
                     <>
                       Start organizing your products by creating categories.
                       <br />
-                      <button className="btn btn-primary mt-3">
+                      <button className="btn btn-primary mt-3" onClick={handleOpenAddModal}>
                         <i className="bi bi-plus-circle me-2"></i>
                         Create Your First Category
                       </button>
@@ -138,7 +210,7 @@ const Categories: React.FC = () => {
             { name: 'Sports & Outdoor', icon: 'bi-bicycle', description: 'Sports equipment and outdoor gear' },
             { name: 'Home & Garden', icon: 'bi-house', description: 'Home improvement and garden supplies' }
           ].map((sample, index) => (
-            <div key={index} className="col-md-6 col-lg-4 col-xl-3 mb-4">
+            <div key={index} className="col-md-4 col-lg-3 col-xl-2 mb-4">
               <div className="card h-100 border-0 shadow-sm opacity-75">
                 <div className="card-body">
                   <div className="d-flex align-items-center mb-3">
@@ -166,6 +238,16 @@ const Categories: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Category Modal */}
+      <CategoryModal
+        show={showModal}
+        onClose={handleCloseModal}
+        onSave={handleSaveCategory}
+        category={selectedCategory}
+        isLoading={modalLoading}
+        error={modalError}
+      />
     </div>
   );
 };

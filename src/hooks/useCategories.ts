@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react';
-import categoriesService from '../services/categoriesService';
-
-interface Category {
-  id: string | number;
-  name: string;
-  description?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import categoriesService, { Category } from '../services/categoriesService';
 
 interface CategoryData {
   name: string;
   description?: string;
+  isActive?: boolean;
+  parentCategoryId?: string;
 }
 
 interface ApiError {
@@ -43,12 +37,12 @@ export const useCategories = () => {
   };
 
   // Create new category
-  const createCategory = async (categoryData: CategoryData): Promise<Category> => {
+  const createCategory = async (categoryData: CategoryData): Promise<string> => {
     try {
-      const createdCategory = await categoriesService.createCategory(categoryData);
-      setCategories(prev => [...prev, createdCategory]);
+      const newCategoryId = await categoriesService.createCategory(categoryData);
+      await fetchCategories(); // Refresh the list
       setError(null);
-      return createdCategory;
+      return newCategoryId;
     } catch (err) {
       const apiError = err as ApiError;
       const errorMessage = apiError.response?.data?.message || 'Failed to create category. Please try again.';
@@ -58,14 +52,11 @@ export const useCategories = () => {
   };
 
   // Update category
-  const updateCategory = async (id: string | number, categoryData: CategoryData): Promise<Category> => {
+  const updateCategory = async (id: string, categoryData: CategoryData): Promise<void> => {
     try {
-      const updatedCategory = await categoriesService.updateCategory(id, categoryData);
-      setCategories(prev => prev.map(cat => 
-        cat.id === id ? updatedCategory : cat
-      ));
+      await categoriesService.updateCategory(id, categoryData);
+      await fetchCategories(); // Refresh the list
       setError(null);
-      return updatedCategory;
     } catch (err) {
       const apiError = err as ApiError;
       const errorMessage = apiError.response?.data?.message || 'Failed to update category. Please try again.';
@@ -75,7 +66,7 @@ export const useCategories = () => {
   };
 
   // Delete category
-  const deleteCategory = async (id: string | number): Promise<void> => {
+  const deleteCategory = async (id: string): Promise<void> => {
     try {
       await categoriesService.deleteCategory(id);
       setCategories(prev => prev.filter(cat => cat.id !== id));
@@ -89,7 +80,7 @@ export const useCategories = () => {
   };
 
   // Get category by ID
-  const getCategoryById = async (id: string | number): Promise<Category> => {
+  const getCategoryById = async (id: string): Promise<Category> => {
     try {
       const category = await categoriesService.getCategoryById(id);
       return category;

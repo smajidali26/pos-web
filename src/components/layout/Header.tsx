@@ -1,35 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { logoutRequest } from '../../store/auth/actions';
 import { clearCart } from '../../store/cart';
 import useRoleAccess from '../../hooks/useRoleAccess';
+import { ChangePasswordModal } from '../profile/ChangePasswordModal';
 import type { RootState, AppDispatch } from '../../store';
 
 const Header: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { 
-    canAccessDashboard, 
-    canAccessProducts, 
-    canAccessCategories, 
-    canAccessSales, 
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const {
+    canAccessDashboard,
+    canAccessProducts,
+    canAccessCategories,
+    canAccessVendors,
+    canAccessCustomers,
+    canAccessOrders,
+    canAccessSales,
     canAccessReports,
-    roleDisplayName 
+    hasPermission,
+    roleDisplayName
   } = useRoleAccess();
 
   // Get permission check results
   const userCanAccessDashboard = canAccessDashboard();
   const userCanAccessProducts = canAccessProducts();
   const userCanAccessCategories = canAccessCategories();
+  const userCanAccessVendors = canAccessVendors();
+  const userCanAccessCustomers = canAccessCustomers();
+  const userCanAccessOrders = canAccessOrders();
   const userCanAccessSales = canAccessSales();
   const userCanAccessReports = canAccessReports();
+  const userCanManageUsers = hasPermission('MANAGE_USERS');
 
   const handleLogout = () => {
+    console.log('Header - Logout button clicked');
+    console.log('Header - Dispatching logoutRequest');
     dispatch(logoutRequest());
     dispatch(clearCart());
-    navigate('/login');
+
+    // Don't navigate manually - let ProtectedRoute redirect when isAuthenticated becomes false
+    // This ensures the saga completes and isLoading is set to false
   };
 
   return (
@@ -67,22 +81,72 @@ const Header: React.FC = () => {
               </li>
             )}
 
-            {/* Products - Owner and Manager only */}
-            {userCanAccessProducts && (
-              <li className="nav-item">
-                <Link className="nav-link" to="/products">
+            {/* Products Menu - Owner and Manager only */}
+            {(userCanAccessProducts || userCanAccessCategories || userCanAccessVendors) && (
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
                   <i className="bi bi-box me-1"></i>
                   Products
+                </a>
+                <ul className="dropdown-menu">
+                  {userCanAccessProducts && (
+                    <li>
+                      <Link className="dropdown-item" to="/products">
+                        <i className="bi bi-box me-2"></i>
+                        All Products
+                      </Link>
+                    </li>
+                  )}
+                  {userCanAccessCategories && (
+                    <li>
+                      <Link className="dropdown-item" to="/categories">
+                        <i className="bi bi-tags me-2"></i>
+                        Categories
+                      </Link>
+                    </li>
+                  )}
+                  {userCanAccessCategories && (
+                    <li>
+                      <Link className="dropdown-item" to="/sizes">
+                        <i className="bi bi-rulers me-2"></i>
+                        Sizes
+                      </Link>
+                    </li>
+                  )}
+                  {userCanAccessVendors && (
+                    <li>
+                      <Link className="dropdown-item" to="/vendors">
+                        <i className="bi bi-building me-2"></i>
+                        Vendors
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </li>
+            )}
+
+            {/* Customers - Owner and Manager only */}
+            {userCanAccessCustomers && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/customers">
+                  <i className="bi bi-people me-1"></i>
+                  Customers
                 </Link>
               </li>
             )}
 
-            {/* Categories - Owner and Manager only */}
-            {userCanAccessCategories && (
+            {/* Orders - Owner, Manager, and Cashier */}
+            {userCanAccessOrders && (
               <li className="nav-item">
-                <Link className="nav-link" to="/categories">
-                  <i className="bi bi-tags me-1"></i>
-                  Categories
+                <Link className="nav-link" to="/orders">
+                  <i className="bi bi-receipt me-1"></i>
+                  Orders
                 </Link>
               </li>
             )}
@@ -103,6 +167,16 @@ const Header: React.FC = () => {
                 <Link className="nav-link" to="/reports">
                   <i className="bi bi-graph-up me-1"></i>
                   Reports
+                </Link>
+              </li>
+            )}
+
+            {/* User Management - Owner only */}
+            {userCanManageUsers && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/users">
+                  <i className="bi bi-person-gear me-1"></i>
+                  Users
                 </Link>
               </li>
             )}
@@ -131,15 +205,12 @@ const Header: React.FC = () => {
                 </li>
                 <li><hr className="dropdown-divider" /></li>
                 <li>
-                  <button className="dropdown-item" disabled>
-                    <i className="bi bi-person me-2"></i>
-                    Profile (Coming Soon)
-                  </button>
-                </li>
-                <li>
-                  <button className="dropdown-item" disabled>
-                    <i className="bi bi-gear me-2"></i>
-                    Settings (Coming Soon)
+                  <button
+                    className="dropdown-item"
+                    onClick={() => setShowChangePassword(true)}
+                  >
+                    <i className="bi bi-shield-lock me-2"></i>
+                    Change Password
                   </button>
                 </li>
                 <li><hr className="dropdown-divider" /></li>
@@ -154,6 +225,12 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        show={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
     </nav>
   );
 };

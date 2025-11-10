@@ -274,13 +274,13 @@ CREATE TABLE Categories (
 Use tools like Postman or curl to test:
 ```bash
 # Test create category
-curl -X POST http://localhost:5090/api/Categories \
+curl -X POST http://localhost:9090/api/Categories \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"name":"Test Category","description":"Test Description"}'
 
 # Test get all categories
-curl -X GET http://localhost:5090/api/Categories \
+curl -X GET http://localhost:9090/api/Categories \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

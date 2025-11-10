@@ -40,4 +40,4 @@ This is a React POS (Point of Sale) Web Application built with modern technologi
 - Development server: `npm run dev` (http://localhost:5173)
 - Production build: `npm run build`
 - Environment configuration: Copy `.env.example` to `.env` and configure API URL
-- Authentication API endpoint: Configurable via `VITE_API_BASE_URL` (default: http://localhost:5090/api/auth/login)
+- Authentication API endpoint: Configurable via `VITE_API_BASE_URL` (default: http://localhost:9090/api/auth/login)

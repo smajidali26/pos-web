@@ -1,12 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import useCart from '../../hooks/useCart';
 import useProducts from '../../hooks/useProducts';
+import { useOrders } from '../../hooks/useOrders';
 import type { CartItem } from '../../store/cart/types';
+import { Customer } from '../../services/customersService';
+import { CustomerSearch } from '../customers/CustomerSearch';
+import { CheckoutModal } from '../orders/CheckoutModal';
+import { OrderReceipt } from '../orders/OrderReceipt';
+import { toast } from 'react-toastify';
+import { formatCurrency } from '../../utils/currency';
 
 const Dashboard: React.FC = () => {
   // Custom hooks for state management
   const cart = useCart();
   const products = useProducts();
+  const { createOrder, selectedOrder, isLoading, error } = useOrders();
 
   // Type assertions for cart properties
   const cartItems = cart.items as CartItem[];
@@ -14,10 +22,56 @@ const Dashboard: React.FC = () => {
   const cartItemCount = cart.itemCount as number;
   const cartIsEmpty = cart.isEmpty as boolean;
 
+  // Local state for checkout flow
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<any>(null);
+
+  // Calculate tax and totals (8% tax rate example)
+  const TAX_RATE = 0.08;
+  const subtotal = cartTotal;
+  const tax = subtotal * TAX_RATE;
+  const discount = 0; // Can be calculated based on promotions/customer
+  const total = subtotal + tax - discount;
+
   // Debug: Log when Dashboard component mounts/updates
   useEffect(() => {
     console.log('Dashboard component loaded/updated');
   }, []);
+
+  const handleCheckout = () => {
+    if (cartIsEmpty) return;
+    setShowCheckout(true);
+  };
+
+  const handleCompleteCheckout = async (orderData: any) => {
+    try {
+      // Create order via API
+      const result = await createOrder(orderData);
+
+      // Set completed order for receipt
+      setCompletedOrder(orderData);
+
+      // Close checkout modal
+      setShowCheckout(false);
+
+      // Clear cart
+      cart.clear();
+
+      // Reset customer
+      setSelectedCustomer(null);
+
+      // Show receipt
+      setShowReceipt(true);
+
+      // Show success toast
+      toast.success('Order completed successfully!');
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      toast.error(err.message || 'Failed to complete order');
+    }
+  };
 
   return (
     <div className="container-fluid">
@@ -53,7 +107,7 @@ const Dashboard: React.FC = () => {
                   </select>
                   {/* Clear Filters */}
                   {(products.searchTerm || products.selectedCategoryId !== '') && (
-                    <button 
+                    <button
                       className="btn btn-outline-secondary btn-sm"
                       onClick={products.clearFilters}
                     >
@@ -77,7 +131,7 @@ const Dashboard: React.FC = () => {
                           )}
                         </div>
                         <h6 className="card-title">{product.name}</h6>
-                        <p className="card-text text-muted">${product.price.toFixed(2)}</p>
+                        <p className="card-text text-muted">{formatCurrency(product.price)}</p>
                         <span className="badge bg-secondary mb-2">{product.category}</span>
                         <br />
                         {cart.isInCart(product.id) ? (
@@ -101,7 +155,7 @@ const Dashboard: React.FC = () => {
                             </div>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             className="btn btn-primary btn-sm"
                             onClick={() => cart.add(product)}
                           >
@@ -139,6 +193,13 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
             <div className="card-body">
+              {/* Customer Search */}
+              <CustomerSearch
+                onSelect={setSelectedCustomer}
+                selectedCustomer={selectedCustomer}
+              />
+
+              <hr className="my-3" />
               {cartIsEmpty ? (
                 <div className="text-center py-4">
                   <i className="bi bi-cart3 text-muted" style={{fontSize: '3rem'}}></i>
@@ -150,9 +211,9 @@ const Dashboard: React.FC = () => {
                     <div key={item.id} className="cart-item d-flex justify-content-between align-items-center mb-3">
                       <div className="flex-grow-1">
                         <h6 className="mb-1">{item.name}</h6>
-                        <small className="text-muted">${item.price.toFixed(2)} each</small>
+                        <small className="text-muted">{formatCurrency(item.price)} each</small>
                         <div className="mt-1">
-                          <strong>${item.subtotal.toFixed(2)}</strong>
+                          <strong>{formatCurrency(item.subtotal)}</strong>
                         </div>
                       </div>
                       <div className="d-flex align-items-center gap-2">
@@ -184,23 +245,40 @@ const Dashboard: React.FC = () => {
               )}
             </div>
             <div className="card-footer">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <strong>Total: ${cartTotal.toFixed(2)}</strong>
+              {!cartIsEmpty && (
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between mb-1">
+                    <span>Subtotal:</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-1">
+                    <span>Tax ({(TAX_RATE * 100).toFixed(0)}%):</span>
+                    <span>{formatCurrency(tax)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 pt-2 border-top">
+                    <strong>Total:</strong>
+                    <strong>{formatCurrency(total)}</strong>
+                  </div>
+                </div>
+              )}
+              <div className="d-flex gap-2">
                 {!cartIsEmpty && (
-                  <button 
+                  <button
                     className="btn btn-outline-secondary btn-sm"
                     onClick={cart.clear}
                   >
                     Clear Cart
                   </button>
                 )}
+                <button
+                  className="btn btn-success flex-grow-1"
+                  disabled={cartIsEmpty}
+                  onClick={handleCheckout}
+                >
+                  <i className="bi bi-cart-check me-2"></i>
+                  Checkout ({cartItemCount} items)
+                </button>
               </div>
-              <button 
-                className="btn btn-success w-100" 
-                disabled={cartIsEmpty}
-              >
-                Checkout ({cartItemCount} items)
-              </button>
             </div>
           </div>
         </div>
@@ -212,10 +290,69 @@ const Dashboard: React.FC = () => {
           <div className="alert alert-info" role="alert">
             <i className="bi bi-info-circle me-2"></i>
             Welcome to POSWeb! This POS system uses <strong>React Redux</strong> for state management.
-            Cart items: <strong>{cartItemCount}</strong> | Total: <strong>${cartTotal.toFixed(2)}</strong>
+            Cart items: <strong>{cartItemCount}</strong> | Total: <strong>{formatCurrency(total)}</strong>
+            {selectedCustomer && (
+              <span className="ms-3">
+                | Customer: <strong>{selectedCustomer.firstName} {selectedCustomer.lastName}</strong>
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      {showCheckout && (
+        <CheckoutModal
+          show={showCheckout}
+          onClose={() => setShowCheckout(false)}
+          onComplete={handleCompleteCheckout}
+          cartItems={cartItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            discount: 0,
+            taxRate: TAX_RATE
+          }))}
+          customer={selectedCustomer}
+          total={total}
+          subtotal={subtotal}
+          tax={tax}
+          discount={discount}
+        />
+      )}
+
+      {/* Order Receipt Modal */}
+      {showReceipt && completedOrder && (
+        <OrderReceipt
+          show={showReceipt}
+          onClose={() => {
+            setShowReceipt(false);
+            setCompletedOrder(null);
+          }}
+          order={{
+            ...completedOrder,
+            id: 'temp-' + Date.now(),
+            orderNumber: 'ORD-' + Date.now(),
+            orderDate: new Date().toISOString(),
+            status: 'Completed' as any,
+            customerName: selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : undefined,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            orderItems: cartItems.map((item, index) => ({
+              id: `item-${index}`,
+              productId: item.id,
+              productName: item.name,
+              quantity: item.quantity,
+              unitPrice: item.price,
+              discount: 0,
+              subtotal: item.subtotal,
+              taxAmount: item.subtotal * TAX_RATE,
+              total: item.subtotal * (1 + TAX_RATE)
+            }))
+          }}
+        />
+      )}
     </div>
   );
 };

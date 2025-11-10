@@ -305,13 +305,13 @@ Product[]  // Simple array of products
 ### API Testing
 ```bash
 # Test basic endpoint
-curl "http://localhost:5090/api/Products/GetAllProducts"
+curl "http://localhost:9090/api/Products/GetAllProducts"
 
 # Test with parameters
-curl "http://localhost:5090/api/Products/GetAllProducts?page=1&pageSize=12&searchTerm=laptop&categoryId=1"
+curl "http://localhost:9090/api/Products/GetAllProducts?page=1&pageSize=12&searchTerm=laptop&categoryId=1"
 
 # Test sorting
-curl "http://localhost:5090/api/Products/GetAllProducts?sortBy=price&sortDirection=desc"
+curl "http://localhost:9090/api/Products/GetAllProducts?sortBy=price&sortDirection=desc"
 ```
 
 ## Future Enhancements
