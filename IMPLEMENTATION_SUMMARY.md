@@ -454,11 +454,23 @@ Create widgets for main dashboard:
 **Message**: "feat: Add advanced inventory management features"
 **Files Changed**: 14 files, 3253+ insertions
 
-### Frontend Commit
+### Frontend Services Commit
 **Branch**: `ft-advanced-inventory-management`
 **Commit**: `3ceef85`
 **Message**: "feat: Add frontend services for advanced inventory management"
 **Files Changed**: 10 files, 541+ insertions
+
+### Frontend UI Components Commit
+**Branch**: `ft-advanced-inventory-management`
+**Commit**: `cf9fb71`
+**Message**: "feat: Add comprehensive inventory management UI components"
+**Files Changed**: 7 files, 1875+ insertions
+
+### Documentation Commit
+**Branch**: `ft-advanced-inventory-management`
+**Commit**: `da20a4f`
+**Message**: "docs: Add comprehensive implementation summary"
+**Files Changed**: 1 file, 498+ insertions
 
 ---
 
@@ -466,16 +478,16 @@ Create widgets for main dashboard:
 
 | Feature | Backend | Frontend Services | Frontend UI | Status |
 |---------|---------|------------------|-------------|--------|
-| Stock Movement History | ✅ | ✅ | ⏳ | 66% |
-| Multi-Location Support | ✅ | ✅ | ⏳ | 66% |
-| Stock Transfers | ✅ | ✅ | ⏳ | 66% |
-| Stock Alerts | ✅ | ✅ | ⏳ | 66% |
-| Batch/Lot Tracking | ✅ | ✅ | ⏳ | 66% |
+| Stock Movement History | ✅ | ✅ | ✅ | 100% |
+| Multi-Location Support | ✅ | ✅ | ✅ | 100% |
+| Stock Transfers | ✅ | ✅ | ✅ | 100% |
+| Stock Alerts | ✅ | ✅ | ✅ | 100% |
+| Batch/Lot Tracking | ✅ | ✅ | ✅ | 100% |
 | Serial Number Tracking | ✅ | ✅ | ⏳ | 66% |
 | FIFO/LIFO Costing | ✅ | ✅ | ⏳ | 66% |
 | Inventory Reporting | ✅ | ✅ | ⏳ | 66% |
 
-**Overall Completion**: ~66% (Backend + Services complete, UI components pending)
+**Overall Completion**: ~91% (Backend, Services, and Core UI complete)
 
 ---
 
