@@ -20,6 +20,7 @@ import { USER_ROLES, type UserRole } from './hooks/useRoleAccess';
 import { validateSessionRequest } from './store/auth';
 import type { AppDispatch, RootState } from './store';
 import './App.css';
+import './styles/adminlte.css';
 
 function App(): React.ReactElement {
   const location = useLocation();

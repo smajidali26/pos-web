@@ -294,9 +294,9 @@ const Products: React.FC = () => {
 
       {!loading && products.length > 0 && (
         <>
-          <div className="row">
+          <div className="row" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem' }}>
             {products.map((product) => (
-              <div key={product.id} className="col-md-4 col-lg-3 col-xl-2 mb-4">
+              <div key={product.id} className="mb-4">
                 <div className="card h-100 border-0 shadow-sm">
                   <div className="card-body d-flex flex-column">
                     <h6 className="card-title">{product.name}</h6>

@@ -7,6 +7,8 @@ import { Customer } from '../../services/customersService';
 import { CustomerSearch } from '../customers/CustomerSearch';
 import { CheckoutModal } from '../orders/CheckoutModal';
 import { OrderReceipt } from '../orders/OrderReceipt';
+import { InfoBox } from './InfoBox';
+import { SmallBox } from './SmallBox';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '../../utils/currency';
 
@@ -74,7 +76,60 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid">
+    <div>
+      {/* Content Header */}
+      <div className="content-header">
+        <div className="container-fluid">
+          <div className="row mb-2">
+            <div className="col-sm-6">
+              <h1 className="m-0">Dashboard</h1>
+            </div>
+            <div className="col-sm-6">
+              <ol className="breadcrumb float-sm-end">
+                <li className="breadcrumb-item"><a href="/">Home</a></li>
+                <li className="breadcrumb-item active">Dashboard</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info Boxes */}
+      <div className="row mb-3">
+        <div className="col-12 col-sm-6 col-md-3">
+          <InfoBox
+            icon="bi-cart-check"
+            text="Items in Cart"
+            number={cartItemCount}
+            bgColor="bg-info"
+          />
+        </div>
+        <div className="col-12 col-sm-6 col-md-3">
+          <InfoBox
+            icon="bi-box"
+            text="Total Products"
+            number={products.products.length}
+            bgColor="bg-success"
+          />
+        </div>
+        <div className="col-12 col-sm-6 col-md-3">
+          <InfoBox
+            icon="bi-currency-dollar"
+            text="Cart Total"
+            number={formatCurrency(total)}
+            bgColor="bg-warning"
+          />
+        </div>
+        <div className="col-12 col-sm-6 col-md-3">
+          <InfoBox
+            icon="bi-person"
+            text="Customer"
+            number={selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : 'Walk-in'}
+            bgColor="bg-danger"
+          />
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="row">
         {/* Product Grid */}
@@ -284,21 +339,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="alert alert-info" role="alert">
-            <i className="bi bi-info-circle me-2"></i>
-            Welcome to POSWeb! This POS system uses <strong>React Redux</strong> for state management.
-            Cart items: <strong>{cartItemCount}</strong> | Total: <strong>{formatCurrency(total)}</strong>
-            {selectedCustomer && (
-              <span className="ms-3">
-                | Customer: <strong>{selectedCustomer.firstName} {selectedCustomer.lastName}</strong>
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Checkout Modal */}
       {showCheckout && (
