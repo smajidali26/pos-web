@@ -284,11 +284,21 @@ All new events added to `InventoryEvents.cs`:
 
 **IMPORTANT**: The following database migration needs to be created and run:
 
+### Step 1: Install EF Core Tools (If Not Already Installed)
+```bash
+dotnet tool install --global dotnet-ef
+# Or update if already installed:
+dotnet tool update --global dotnet-ef
+```
+
+### Step 2: Create and Apply Migration
 ```bash
 cd D:\Majid\POS\pos-api\src\POSApi.Infrastructure
 dotnet ef migrations add AddAdvancedInventoryManagement --startup-project ../POSApi.Web.API
 dotnet ef database update --startup-project ../POSApi.Web.API
 ```
+
+**See**: `D:\Majid\POS\pos-api\MIGRATION_GUIDE.md` for detailed migration instructions, troubleshooting, and rollback procedures.
 
 ---
 
@@ -483,11 +493,13 @@ Create widgets for main dashboard:
 | Stock Transfers | ✅ | ✅ | ✅ | 100% |
 | Stock Alerts | ✅ | ✅ | ✅ | 100% |
 | Batch/Lot Tracking | ✅ | ✅ | ✅ | 100% |
-| Serial Number Tracking | ✅ | ✅ | ⏳ | 66% |
+| Serial Number Tracking | ✅ | ✅ | ✅ | 100% |
 | FIFO/LIFO Costing | ✅ | ✅ | ⏳ | 66% |
 | Inventory Reporting | ✅ | ✅ | ⏳ | 66% |
+| Navigation Menu | ✅ | ✅ | ✅ | 100% |
+| Dashboard Widgets | ✅ | ✅ | ✅ | 100% |
 
-**Overall Completion**: ~91% (Backend, Services, and Core UI complete)
+**Overall Completion**: ~95% (All UI complete, FIFO/LIFO & Reporting views pending)
 
 ---
 

@@ -20,6 +20,7 @@ import Locations from './components/inventory/Locations';
 import StockTransfers from './components/inventory/StockTransfers';
 import Batches from './components/inventory/Batches';
 import StockAlerts from './components/inventory/StockAlerts';
+import SerialNumbers from './components/inventory/SerialNumbers';
 import useTokenRefresh from './hooks/useTokenRefresh';
 import { USER_ROLES, type UserRole } from './hooks/useRoleAccess';
 import { validateSessionRequest } from './store/auth';
@@ -220,6 +221,14 @@ function App(): React.ReactElement {
               element={
                 <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
                   <StockAlerts key={`alerts-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/serial-numbers"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <SerialNumbers key={`serial-numbers-${location.pathname}`} />
                 </RoleProtectedRoute>
               }
             />

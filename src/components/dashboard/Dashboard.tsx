@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useCart from '../../hooks/useCart';
 import useProducts from '../../hooks/useProducts';
 import { useOrders } from '../../hooks/useOrders';
+import useRoleAccess from '../../hooks/useRoleAccess';
 import type { CartItem } from '../../store/cart/types';
 import { Customer } from '../../services/customersService';
 import { CustomerSearch } from '../customers/CustomerSearch';
@@ -9,6 +10,7 @@ import { CheckoutModal } from '../orders/CheckoutModal';
 import { OrderReceipt } from '../orders/OrderReceipt';
 import { InfoBox } from './InfoBox';
 import { SmallBox } from './SmallBox';
+import { InventoryWidgets } from './InventoryWidgets';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '../../utils/currency';
 
@@ -17,6 +19,10 @@ const Dashboard: React.FC = () => {
   const cart = useCart();
   const products = useProducts();
   const { createOrder, selectedOrder, isLoading, error } = useOrders();
+  const { canAccessReports } = useRoleAccess();
+
+  // Check if user is manager/owner (can see inventory widgets)
+  const canSeeInventory = canAccessReports();
 
   // Type assertions for cart properties
   const cartItems = cart.items as CartItem[];
@@ -93,6 +99,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Inventory Widgets - Only for Managers/Owners */}
+      {canSeeInventory && <InventoryWidgets />}
 
       {/* Info Boxes */}
       <div className="row mb-3">

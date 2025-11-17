@@ -9,6 +9,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
   const [productsExpanded, setProductsExpanded] = useState(false);
+  const [inventoryExpanded, setInventoryExpanded] = useState(false);
   const {
     canAccessDashboard,
     canAccessProducts,
@@ -148,6 +149,64 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                   <i className="nav-icon bi bi-graph-up"></i>
                   <p>Reports</p>
                 </Link>
+              </li>
+            )}
+
+            {/* Inventory Management */}
+            {userCanAccessReports && (
+              <li className={`nav-item ${inventoryExpanded ? 'menu-open' : ''}`}>
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setInventoryExpanded(!inventoryExpanded);
+                  }}
+                >
+                  <i className="nav-icon bi bi-boxes"></i>
+                  <p>
+                    Inventory
+                    <i className={`right bi bi-chevron-${inventoryExpanded ? 'down' : 'left'}`}></i>
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/inventory/movements" className={`nav-link ${isActive('/inventory/movements') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Stock Movements</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/inventory/locations" className={`nav-link ${isActive('/inventory/locations') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Locations</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/inventory/transfers" className={`nav-link ${isActive('/inventory/transfers') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Stock Transfers</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/inventory/batches" className={`nav-link ${isActive('/inventory/batches') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Batches</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/inventory/serial-numbers" className={`nav-link ${isActive('/inventory/serial-numbers') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Serial Numbers</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/inventory/alerts" className={`nav-link ${isActive('/inventory/alerts') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Stock Alerts</p>
+                    </Link>
+                  </li>
+                </ul>
               </li>
             )}
 
