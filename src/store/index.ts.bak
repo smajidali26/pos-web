@@ -10,10 +10,6 @@ import storesReducer from './stores/storesSlice';
 import transfersReducer from './interStoreTransfers/transfersSlice';
 import loyaltyReducer from './loyalty/loyaltySlice';
 import analyticsReducer from './analytics/analyticsSlice';
-import employeeProfilesReducer from './employees/employeeProfilesSlice';
-import shiftsReducer from './employees/shiftsSlice';
-import commissionsReducer from './employees/commissionsSlice';
-import performanceReducer from './employees/performanceSlice';
 import rootSaga from './sagas';
 
 // Create saga middleware
@@ -31,10 +27,6 @@ export const store = configureStore({
     interStoreTransfers: transfersReducer,
     loyalty: loyaltyReducer,
     analytics: analyticsReducer,
-    employeeProfiles: employeeProfilesReducer,
-    shifts: shiftsReducer,
-    commissions: commissionsReducer,
-    performance: performanceReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
