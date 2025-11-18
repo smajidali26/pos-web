@@ -37,12 +37,6 @@ import {
   InventoryTurnoverView,
   InventoryHealthDashboard,
 } from './components/analytics';
-import {
-  EmployeeManagementPage,
-  EmployeeProfilePage,
-  ShiftSchedulePage,
-  CommissionReportsPage
-} from './components/employees';
 import useTokenRefresh from './hooks/useTokenRefresh';
 import { USER_ROLES, type UserRole } from './hooks/useRoleAccess';
 import { validateSessionRequest } from './store/auth';
@@ -414,41 +408,6 @@ function App(): React.ReactElement {
                 </RoleProtectedRoute>
               }
             />
-
-            {/* Employee Management routes - Owner and Manager */}
-            <Route
-              path="/employees"
-              element={
-                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
-                  <EmployeeManagementPage key={`employees-${location.pathname}`} />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/employees/:id"
-              element={
-                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
-                  <EmployeeProfilePage key={`employee-profile-${location.pathname}`} />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/employees/shifts"
-              element={
-                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
-                  <ShiftSchedulePage key={`shifts-${location.pathname}`} />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/employees/commissions"
-              element={
-                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
-                  <CommissionReportsPage key={`commissions-${location.pathname}`} />
-                </RoleProtectedRoute>
-              }
-            />
-
 
                   {/* Unauthorized page */}
                   <Route path="/unauthorized" element={<Unauthorized />} />
