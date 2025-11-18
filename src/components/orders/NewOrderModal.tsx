@@ -6,6 +6,7 @@ import ordersService, { PaymentMethod } from '../../services/ordersService';
 import { formatCurrency } from '../../utils/currency';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
+import { getErrorMessage } from '../../types/api';
 
 interface CartItem {
   product: Product;
@@ -17,8 +18,8 @@ interface CartItem {
 interface NewOrderModalProps {
   show: boolean;
   onClose: () => void;
-  onSubmit: (orderData: any) => Promise<any>;
-  onOrderCreated?: (order: any) => void;
+  onSubmit: (orderData: unknown) => Promise<unknown>;
+  onOrderCreated?: (order: unknown) => void;
 }
 
 export const NewOrderModal: React.FC<NewOrderModalProps> = ({ show, onClose, onSubmit, onOrderCreated }) => {
@@ -77,9 +78,9 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ show, onClose, onS
         pageSize: 10
       });
       setProducts(response.items);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Search error:', err);
-      setError('Failed to search products');
+      setError(getErrorMessage(err));
     } finally {
       setSearchLoading(false);
     }
@@ -207,7 +208,7 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ show, onClose, onS
           paymentMethod: PaymentMethod.Cash,
           notes: customerName.trim() ? `Customer: ${customerName.trim()}` : undefined
         });
-      } catch (completeError: any) {
+      } catch (completeError) {
         console.error('Failed to complete order:', completeError);
         // Don't fail the whole operation if complete fails - order is already created
       }
@@ -228,9 +229,9 @@ export const NewOrderModal: React.FC<NewOrderModalProps> = ({ show, onClose, onS
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Order submission error:', err);
-      setError(err.message || 'Failed to create order');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

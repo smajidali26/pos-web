@@ -4,6 +4,7 @@ import { Order, OrderItem } from '../../services/ordersService';
 import ordersService from '../../services/ordersService';
 import { formatCurrency } from '../../utils/currency';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface ReturnItemsModalProps {
   show: boolean;
@@ -111,8 +112,8 @@ export const ReturnItemsModal: React.FC<ReturnItemsModalProps> = ({
       toast.success('Items refunded successfully!');
       onRefundSuccess();
       handleClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to process refund');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

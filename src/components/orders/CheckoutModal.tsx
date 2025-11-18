@@ -4,6 +4,7 @@ import { Customer } from '../../services/customersService';
 import { PaymentMethod } from '../../services/ordersService';
 import paymentsService from '../../services/paymentsService';
 import { formatCurrency } from '../../utils/currency';
+import { getErrorMessage } from '../../types/api';
 
 interface CartItem {
   id: string;
@@ -17,7 +18,7 @@ interface CartItem {
 interface CheckoutModalProps {
   show: boolean;
   onClose: () => void;
-  onComplete: (order: any) => void;
+  onComplete: (order: unknown) => void;
   cartItems: CartItem[];
   customer?: Customer | null;
   total: number;
@@ -178,9 +179,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         setError('Stripe payment integration requires additional frontend setup with Stripe Elements.');
         setCardPaymentProcessing(false);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Checkout error:', err);
-      setError(err.response?.data?.message || err.message || 'Payment processing failed');
+      setError(getErrorMessage(err));
       setCardPaymentProcessing(false);
     }
   };

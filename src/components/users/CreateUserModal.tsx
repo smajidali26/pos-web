@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, Alert, Row, Col } from 'react-bootstrap';
 import usersService, { CreateUserRequest } from '../../services/usersService';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface CreateUserModalProps {
   show: boolean;
@@ -117,8 +118,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({ show, onClose,
       toast.success('User created successfully!');
       handleReset();
       onUserCreated();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create user');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

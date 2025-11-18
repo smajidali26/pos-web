@@ -4,6 +4,7 @@ import { Order, PaymentMethod } from '../../services/ordersService';
 import { formatCurrency } from '../../utils/currency';
 import thermalPrinterService from '../../services/thermalPrinterService';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface OrderReceiptProps {
   show: boolean;
@@ -133,9 +134,9 @@ export const OrderReceipt: React.FC<OrderReceiptProps> = ({
       setThermalPrinting(true);
       await thermalPrinterService.printReceipt(order);
       toast.success('Receipt sent to thermal printer successfully!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Thermal print error:', error);
-      toast.error(error.message || 'Failed to print to thermal printer');
+      toast.error(getErrorMessage(error));
     } finally {
       setThermalPrinting(false);
     }

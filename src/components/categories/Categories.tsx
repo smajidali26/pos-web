@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useCategories from '../../hooks/useCategories';
 import useRoleAccess from '../../hooks/useRoleAccess';
 import CategoryModal from './CategoryModal';
+import { getErrorMessage } from '../../types/api';
 
 const Categories: React.FC = () => {
   const {
@@ -18,7 +19,7 @@ const Categories: React.FC = () => {
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<unknown>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
@@ -28,7 +29,7 @@ const Categories: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleOpenEditModal = (category: any) => {
+  const handleOpenEditModal = (category: unknown) => {
     setSelectedCategory(category);
     setModalError(null);
     setShowModal(true);
@@ -40,23 +41,23 @@ const Categories: React.FC = () => {
     setModalError(null);
   };
 
-  const handleSaveCategory = async (categoryData: any) => {
+  const handleSaveCategory = async (categoryData: Omit<{ id: string; name: string; description?: string; isActive: boolean }, 'id'>) => {
     try {
       setModalLoading(true);
       setModalError(null);
 
-      if (selectedCategory) {
+      if (selectedCategory && typeof selectedCategory === 'object' && selectedCategory !== null && 'id' in selectedCategory) {
         // Update existing category
-        await updateCategory(selectedCategory.id, categoryData);
+        await updateCategory((selectedCategory as { id: string }).id, categoryData);
       } else {
         // Create new category
         await createCategory(categoryData);
       }
 
       handleCloseModal();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving category:', err);
-      setModalError(err.response?.data?.message || 'Failed to save category. Please try again.');
+      setModalError(getErrorMessage(err));
     } finally {
       setModalLoading(false);
     }

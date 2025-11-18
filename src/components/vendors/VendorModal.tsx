@@ -24,7 +24,7 @@ interface Vendor {
 interface VendorModalProps {
   show: boolean;
   onClose: () => void;
-  onSave: (vendor: any) => void;
+  onSave: (vendor: Omit<Vendor, 'id' | 'typeName' | 'paymentTermsName' | 'isActive' | 'createdAt' | 'updatedAt'>) => void;
   vendor?: Vendor | null;
   isLoading?: boolean;
   error?: string | null;

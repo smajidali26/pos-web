@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { sizesService, type Size } from '../../services/sizesService';
 import SizeModal from './SizeModal';
+import { getErrorMessage } from '../../types/api';
 
 const Sizes: React.FC = () => {
   const [sizes, setSizes] = useState<Size[]>([]);
@@ -30,8 +31,8 @@ const Sizes: React.FC = () => {
       const data = await sizesService.getAll();
       setSizes(data);
       setFilteredSizes(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load sizes');
+    } catch (err) {
+      setError(getErrorMessage(err));
       console.error('Error loading sizes:', err);
     } finally {
       setLoading(false);
@@ -52,7 +53,7 @@ const Sizes: React.FC = () => {
     setFilteredSizes(filtered);
   };
 
-  const handleCreate = async (sizeData: any) => {
+  const handleCreate = async (sizeData: unknown) => {
     try {
       setModalLoading(true);
       setModalError(null);
@@ -60,15 +61,15 @@ const Sizes: React.FC = () => {
       await loadSizes();
       setShowModal(false);
       setSelectedSize(null);
-    } catch (err: any) {
-      setModalError(err.response?.data?.message || 'Failed to create size');
+    } catch (err) {
+      setModalError(getErrorMessage(err));
       console.error('Error creating size:', err);
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleUpdate = async (sizeData: any) => {
+  const handleUpdate = async (sizeData: unknown) => {
     if (!selectedSize) return;
 
     try {
@@ -83,8 +84,8 @@ const Sizes: React.FC = () => {
       await loadSizes();
       setShowModal(false);
       setSelectedSize(null);
-    } catch (err: any) {
-      setModalError(err.response?.data?.message || 'Failed to update size');
+    } catch (err) {
+      setModalError(getErrorMessage(err));
       console.error('Error updating size:', err);
     } finally {
       setModalLoading(false);
@@ -101,8 +102,8 @@ const Sizes: React.FC = () => {
       setError(null);
       await sizesService.delete(size.id);
       await loadSizes();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete size');
+    } catch (err) {
+      setError(getErrorMessage(err));
       console.error('Error deleting size:', err);
     } finally {
       setDeleteLoading(null);

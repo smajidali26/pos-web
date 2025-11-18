@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
-import { Product, UpdateQuantityPayload, CheckoutPayload } from './types';
+import { Product, CartItem, UpdateQuantityPayload, CheckoutPayload } from './types';
 
 // Cart Action Types
 export const ADD_TO_CART = 'cart/ADD_TO_CART';
@@ -34,5 +34,5 @@ export const saveCartSuccess = createAction(SAVE_CART_SUCCESS);
 export const saveCartFailure = createAction<string>(SAVE_CART_FAILURE);
 
 export const loadCartRequest = createAction(LOAD_CART_REQUEST);
-export const loadCartSuccess = createAction<{ items: any[] }>(LOAD_CART_SUCCESS);
+export const loadCartSuccess = createAction<{ items: CartItem[] }>(LOAD_CART_SUCCESS);
 export const loadCartFailure = createAction<string>(LOAD_CART_FAILURE);

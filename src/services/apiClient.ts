@@ -9,7 +9,7 @@ import config from '../config';
 // Types for queue management
 interface QueueItem {
   resolve: (token: string) => void;
-  reject: (error: any) => void;
+  reject: (error: Error) => void;
 }
 
 interface RefreshTokenResponse {
@@ -31,7 +31,7 @@ const apiClient: AxiosInstance = axios.create({
 let isRefreshing = false;
 let failedQueue: QueueItem[] = [];
 
-const processQueue = (error: any, token: string | null = null): void => {
+const processQueue = (error: Error | null, token: string | null = null): void => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
@@ -39,7 +39,7 @@ const processQueue = (error: any, token: string | null = null): void => {
       prom.resolve(token!);
     }
   });
-  
+
   failedQueue = [];
 };
 
@@ -51,7 +51,7 @@ apiClient.interceptors.request.use(
     // No manual Authorization header needed
     return config;
   },
-  (error: any) => {
+  (error: Error) => {
     return Promise.reject(error);
   }
 );
@@ -61,7 +61,7 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  async (error: any) => {
+  async (error: Error & { config?: AxiosRequestConfig; response?: AxiosResponse }) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     // Handle 401 errors (Unauthorized)
@@ -122,8 +122,14 @@ apiClient.interceptors.response.use(
         console.log('Session expired, dispatching logout');
 
         // Dispatch logout action
-        if ((window as any).store) {
-          (window as any).store.dispatch({ type: 'auth/resetAuth' });
+        interface WindowWithStore extends Window {
+          store?: {
+            dispatch: (action: { type: string }) => void;
+          };
+        }
+        const windowWithStore = window as WindowWithStore;
+        if (windowWithStore.store) {
+          windowWithStore.store.dispatch({ type: 'auth/resetAuth' });
         }
 
         // Redirect to login

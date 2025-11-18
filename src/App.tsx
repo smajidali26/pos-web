@@ -15,6 +15,12 @@ import Customers from './components/customers/Customers';
 import Orders from './components/orders/Orders';
 import Login from './components/login/Login';
 import { UserManagementPage } from './components/users/UserManagementPage';
+import InventoryMovements from './components/inventory/InventoryMovements';
+import Locations from './components/inventory/Locations';
+import StockTransfers from './components/inventory/StockTransfers';
+import Batches from './components/inventory/Batches';
+import StockAlerts from './components/inventory/StockAlerts';
+import SerialNumbers from './components/inventory/SerialNumbers';
 import useTokenRefresh from './hooks/useTokenRefresh';
 import { USER_ROLES, type UserRole } from './hooks/useRoleAccess';
 import { validateSessionRequest } from './store/auth';
@@ -173,6 +179,56 @@ function App(): React.ReactElement {
               element={
                 <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER]}>
                   <UserManagementPage key={`users-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Inventory Management routes - Owner and Manager */}
+            <Route
+              path="/inventory/movements"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <InventoryMovements key={`inventory-movements-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/locations"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <Locations key={`locations-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/transfers"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <StockTransfers key={`transfers-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/batches"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <Batches key={`batches-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/alerts"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <StockAlerts key={`alerts-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/inventory/serial-numbers"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <SerialNumbers key={`serial-numbers-${location.pathname}`} />
                 </RoleProtectedRoute>
               }
             />

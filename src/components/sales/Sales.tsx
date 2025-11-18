@@ -4,6 +4,7 @@ import useRoleAccess from '../../hooks/useRoleAccess';
 import ordersService, { Order, OrderStatus } from '../../services/ordersService';
 import { formatCurrency } from '../../utils/currency';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 const Sales: React.FC = () => {
   const navigate = useNavigate();
@@ -114,9 +115,9 @@ const Sales: React.FC = () => {
       // Set recent orders from selected period
       setRecentOrders(completedOrders.slice(0, 100));
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch sales data:', err);
-      toast.error('Failed to load sales data');
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

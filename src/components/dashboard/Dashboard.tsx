@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useCart from '../../hooks/useCart';
 import useProducts from '../../hooks/useProducts';
 import { useOrders } from '../../hooks/useOrders';
+import useRoleAccess from '../../hooks/useRoleAccess';
 import type { CartItem } from '../../store/cart/types';
 import { Customer } from '../../services/customersService';
 import { CustomerSearch } from '../customers/CustomerSearch';
@@ -9,14 +10,20 @@ import { CheckoutModal } from '../orders/CheckoutModal';
 import { OrderReceipt } from '../orders/OrderReceipt';
 import { InfoBox } from './InfoBox';
 import { SmallBox } from './SmallBox';
+import { InventoryWidgets } from './InventoryWidgets';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '../../utils/currency';
+import { getErrorMessage } from '../../types/api';
 
 const Dashboard: React.FC = () => {
   // Custom hooks for state management
   const cart = useCart();
   const products = useProducts();
   const { createOrder, selectedOrder, isLoading, error } = useOrders();
+  const { canAccessReports } = useRoleAccess();
+
+  // Check if user is manager/owner (can see inventory widgets)
+  const canSeeInventory = canAccessReports();
 
   // Type assertions for cart properties
   const cartItems = cart.items as CartItem[];
@@ -28,7 +35,7 @@ const Dashboard: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const [completedOrder, setCompletedOrder] = useState<unknown>(null);
 
   // Calculate tax and totals (8% tax rate example)
   const TAX_RATE = 0.08;
@@ -47,7 +54,7 @@ const Dashboard: React.FC = () => {
     setShowCheckout(true);
   };
 
-  const handleCompleteCheckout = async (orderData: any) => {
+  const handleCompleteCheckout = async (orderData: unknown) => {
     try {
       // Create order via API
       const result = await createOrder(orderData);
@@ -69,9 +76,9 @@ const Dashboard: React.FC = () => {
 
       // Show success toast
       toast.success('Order completed successfully!');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Checkout error:', err);
-      toast.error(err.message || 'Failed to complete order');
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -93,6 +100,9 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Inventory Widgets - Only for Managers/Owners */}
+      {canSeeInventory && <InventoryWidgets />}
 
       {/* Info Boxes */}
       <div className="row mb-3">
@@ -375,7 +385,7 @@ const Dashboard: React.FC = () => {
             id: 'temp-' + Date.now(),
             orderNumber: 'ORD-' + Date.now(),
             orderDate: new Date().toISOString(),
-            status: 'Completed' as any,
+            status: 'Completed' as const,
             customerName: selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : undefined,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
