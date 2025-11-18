@@ -6,6 +6,10 @@ import { productsReducer } from './products';
 import customersReducer from './customers/customersSlice';
 import ordersReducer from './orders/ordersSlice';
 import reportsReducer from './reports/reportsSlice';
+import storesReducer from './stores/storesSlice';
+import transfersReducer from './interStoreTransfers/transfersSlice';
+import loyaltyReducer from './loyalty/loyaltySlice';
+import analyticsReducer from './analytics/analyticsSlice';
 import rootSaga from './sagas';
 
 // Create saga middleware
@@ -19,6 +23,10 @@ export const store = configureStore({
     customers: customersReducer,
     orders: ordersReducer,
     reports: reportsReducer,
+    stores: storesReducer,
+    interStoreTransfers: transfersReducer,
+    loyalty: loyaltyReducer,
+    analytics: analyticsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

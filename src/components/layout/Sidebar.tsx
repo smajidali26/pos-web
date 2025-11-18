@@ -10,6 +10,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
   const [productsExpanded, setProductsExpanded] = useState(false);
   const [inventoryExpanded, setInventoryExpanded] = useState(false);
+  const [storesExpanded, setStoresExpanded] = useState(false);
+  const [transfersExpanded, setTransfersExpanded] = useState(false);
+  const [loyaltyExpanded, setLoyaltyExpanded] = useState(false);
+  const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
   const {
     canAccessDashboard,
     canAccessProducts,
@@ -204,6 +208,172 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
                     <Link to="/inventory/alerts" className={`nav-link ${isActive('/inventory/alerts') ? 'active' : ''}`}>
                       <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
                       <p>Stock Alerts</p>
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
+
+            {/* Store Management */}
+            {userCanAccessReports && (
+              <li className={`nav-item ${storesExpanded ? 'menu-open' : ''}`}>
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setStoresExpanded(!storesExpanded);
+                  }}
+                >
+                  <i className="nav-icon bi bi-shop"></i>
+                  <p>
+                    Stores
+                    <i className={`right bi bi-chevron-${storesExpanded ? 'down' : 'left'}`}></i>
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/stores" className={`nav-link ${isActive('/stores') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>All Stores</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/stores/hierarchy" className={`nav-link ${isActive('/stores/hierarchy') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Store Hierarchy</p>
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
+
+            {/* Inter-Store Transfers */}
+            {userCanAccessReports && (
+              <li className={`nav-item ${transfersExpanded ? 'menu-open' : ''}`}>
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTransfersExpanded(!transfersExpanded);
+                  }}
+                >
+                  <i className="nav-icon bi bi-arrow-left-right"></i>
+                  <p>
+                    Transfers
+                    <i className={`right bi bi-chevron-${transfersExpanded ? 'down' : 'left'}`}></i>
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/transfers" className={`nav-link ${isActive('/transfers') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>All Transfers</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/transfers/pending" className={`nav-link ${isActive('/transfers/pending') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Pending Transfers</p>
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
+
+            {/* Loyalty Program */}
+            {userCanAccessReports && (
+              <li className={`nav-item ${loyaltyExpanded ? 'menu-open' : ''}`}>
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLoyaltyExpanded(!loyaltyExpanded);
+                  }}
+                >
+                  <i className="nav-icon bi bi-star"></i>
+                  <p>
+                    Loyalty Program
+                    <i className={`right bi bi-chevron-${loyaltyExpanded ? 'down' : 'left'}`}></i>
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/loyalty/dashboard" className={`nav-link ${isActive('/loyalty/dashboard') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Dashboard</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/loyalty/rewards" className={`nav-link ${isActive('/loyalty/rewards') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Rewards</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/loyalty/settings" className={`nav-link ${isActive('/loyalty/settings') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Settings</p>
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            )}
+
+            {/* Analytics */}
+            {userCanAccessReports && (
+              <li className={`nav-item ${analyticsExpanded ? 'menu-open' : ''}`}>
+                <a
+                  href="#"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setAnalyticsExpanded(!analyticsExpanded);
+                  }}
+                >
+                  <i className="nav-icon bi bi-bar-chart-line"></i>
+                  <p>
+                    Analytics
+                    <i className={`right bi bi-chevron-${analyticsExpanded ? 'down' : 'left'}`}></i>
+                  </p>
+                </a>
+                <ul className="nav nav-treeview">
+                  <li className="nav-item">
+                    <Link to="/analytics/realtime" className={`nav-link ${isActive('/analytics/realtime') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Real-time Dashboard</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/analytics/sales" className={`nav-link ${isActive('/analytics/sales') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Sales Analytics</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/analytics/forecast" className={`nav-link ${isActive('/analytics/forecast') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Sales Forecast</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/analytics/abc-analysis" className={`nav-link ${isActive('/analytics/abc-analysis') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>ABC Analysis</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/analytics/turnover" className={`nav-link ${isActive('/analytics/turnover') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Inventory Turnover</p>
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/analytics/inventory" className={`nav-link ${isActive('/analytics/inventory') ? 'active' : ''}`}>
+                      <i className="bi bi-circle nav-icon" style={{ fontSize: '0.5rem' }}></i>
+                      <p>Inventory Health</p>
                     </Link>
                   </li>
                 </ul>
