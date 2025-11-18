@@ -93,13 +93,14 @@ export const authService = {
       // Backend reads token from cookie, no body needed
       const response = await apiClient.post<ValidateTokenResponse>('/api/auth/validate-token', {});
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       // Return invalid response instead of throwing
       // This handles cases where no cookie exists or backend returns error
-      console.log('Validate token error:', error.response?.status, error.response?.data);
+      const err = error as { response?: { status?: number; data?: { message?: string } }; message?: string };
+      console.log('Validate token error:', err.response?.status, err.response?.data);
       return {
         isValid: false,
-        errorMessage: error.response?.data?.message || error.message || 'No valid session'
+        errorMessage: err.response?.data?.message || err.message || 'No valid session'
       };
     }
   },

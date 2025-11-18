@@ -6,6 +6,7 @@ import locationsService, { Location } from '../../services/locationsService';
 import productsService from '../../services/productsService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/dateUtils';
+import { getErrorMessage } from '../../types/api';
 
 const StockTransfers: React.FC = () => {
   const [transfers, setTransfers] = useState<StockTransfer[]>([]);
@@ -30,8 +31,8 @@ const StockTransfers: React.FC = () => {
       ]);
       setTransfers(transfersData);
       setLocations(locationsData.filter(l => l.isActive));
-    } catch (err: any) {
-      toast.error('Failed to load data');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -45,8 +46,8 @@ const StockTransfers: React.FC = () => {
       setShowCreateModal(false);
       setFormData({});
       loadData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create transfer');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -91,8 +92,8 @@ const StockTransfers: React.FC = () => {
       setActionType(null);
       setFormData({});
       loadData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Action failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

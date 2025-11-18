@@ -18,10 +18,32 @@
 import { Order } from './ordersService';
 import { formatCurrency } from '../utils/currency';
 
+// QZ Tray types
+interface QZWebSocket {
+  isActive: () => boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+interface QZPrinters {
+  find: () => Promise<string[]>;
+}
+
+interface QZConfigs {
+  create: (printerName: string, options: { encoding: string }) => unknown;
+}
+
+interface QZ {
+  websocket: QZWebSocket;
+  printers: QZPrinters;
+  configs: QZConfigs;
+  print: (config: unknown, commands: string[]) => Promise<void>;
+}
+
 // QZ Tray WebSocket connection
 declare global {
   interface Window {
-    qz: any;
+    qz?: QZ;
   }
 }
 
@@ -32,7 +54,7 @@ interface PrinterConfig {
 }
 
 class ThermalPrinterService {
-  private qz: any = null;
+  private qz: QZ | null = null;
   private isConnected: boolean = false;
   private defaultConfig: PrinterConfig = {
     printerName: '', // Auto-detect or set specific printer name
@@ -151,9 +173,10 @@ class ThermalPrinterService {
       // Print
       await this.qz.print(qzConfig, commands);
       console.log('Receipt printed successfully');
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Print failed:', error);
-      throw new Error(error.message || 'Failed to print receipt');
+      throw new Error(err.message || 'Failed to print receipt');
     }
   }
 

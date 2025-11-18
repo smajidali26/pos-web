@@ -3,6 +3,7 @@ import { Card, Table, Badge, Form, Row, Col, Button, Spinner, Alert } from 'reac
 import { FaHistory, FaFilter, FaDownload } from 'react-icons/fa';
 import inventoryService, { InventoryMovement } from '../../services/inventoryService';
 import { formatDate } from '../../utils/dateUtils';
+import { getErrorMessage } from '../../types/api';
 
 const InventoryMovements: React.FC = () => {
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
@@ -28,8 +29,8 @@ const InventoryMovements: React.FC = () => {
       setError(null);
       const data = await inventoryService.getInventoryMovements(filters);
       setMovements(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load inventory movements');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,7 @@ import ProductModal from './ProductModal';
 import StockUpdateModal from './StockUpdateModal';
 import productsService from '../../services/productsService';
 import { formatCurrency } from '../../utils/currency';
+import { getErrorMessage } from '../../types/api';
 
 const Products: React.FC = () => {
   const {
@@ -43,13 +44,13 @@ const Products: React.FC = () => {
 
   // Product Modal state
   const [showModal, setShowModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<unknown>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
   // Stock Update Modal state
   const [showStockModal, setShowStockModal] = useState(false);
-  const [selectedStockProduct, setSelectedStockProduct] = useState<any>(null);
+  const [selectedStockProduct, setSelectedStockProduct] = useState<unknown>(null);
   const [stockModalLoading, setStockModalLoading] = useState(false);
   const [stockModalError, setStockModalError] = useState<string | null>(null);
 
@@ -64,7 +65,7 @@ const Products: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleOpenEditModal = (product: any) => {
+  const handleOpenEditModal = (product: unknown) => {
     setSelectedProduct(product);
     setModalError(null);
     setShowModal(true);
@@ -76,29 +77,29 @@ const Products: React.FC = () => {
     setModalError(null);
   };
 
-  const handleSaveProduct = async (productData: any) => {
+  const handleSaveProduct = async (productData: unknown) => {
     try {
       setModalLoading(true);
       setModalError(null);
 
-      if (selectedProduct) {
+      if (selectedProduct && typeof selectedProduct === 'object' && selectedProduct !== null && 'id' in selectedProduct) {
         // Update existing product
-        await updateProduct(selectedProduct.id, productData);
+        await updateProduct((selectedProduct as { id: string }).id, productData);
       } else {
         // Create new product
         await createProduct(productData);
       }
 
       handleCloseModal();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving product:', err);
-      setModalError(err.response?.data?.message || 'Failed to save product. Please try again.');
+      setModalError(getErrorMessage(err));
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleOpenStockModal = (product: any) => {
+  const handleOpenStockModal = (product: unknown) => {
     setSelectedStockProduct(product);
     setStockModalError(null);
     setShowStockModal(true);
@@ -115,13 +116,15 @@ const Products: React.FC = () => {
       setStockModalLoading(true);
       setStockModalError(null);
 
-      await productsService.updateStock(selectedStockProduct.id, newQuantity, reason);
-      await fetchProducts(); // Refresh the list
+      if (selectedStockProduct && typeof selectedStockProduct === 'object' && selectedStockProduct !== null && 'id' in selectedStockProduct) {
+        await productsService.updateStock((selectedStockProduct as { id: string }).id, newQuantity, reason);
+        await fetchProducts(); // Refresh the list
+      }
 
       handleCloseStockModal();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating stock:', err);
-      setStockModalError(err.response?.data?.message || 'Failed to update stock. Please try again.');
+      setStockModalError(getErrorMessage(err));
     } finally {
       setStockModalLoading(false);
     }

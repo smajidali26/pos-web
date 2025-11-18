@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Spinner, Alert, Form, InputGroup } from 'react-bootstrap';
 import { vendorsService, type Vendor } from '../../services/vendorsService';
 import VendorModal from './VendorModal';
+import { getErrorMessage } from '../../types/api';
 
 const Vendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -30,8 +31,8 @@ const Vendors: React.FC = () => {
       const data = await vendorsService.getAll(includeInactive);
       setVendors(data);
       setFilteredVendors(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load vendors');
+    } catch (err) {
+      setError(getErrorMessage(err));
       console.error('Error loading vendors:', err);
     } finally {
       setLoading(false);
@@ -54,7 +55,7 @@ const Vendors: React.FC = () => {
     setFilteredVendors(filtered);
   };
 
-  const handleCreate = async (vendorData: any) => {
+  const handleCreate = async (vendorData: Omit<Vendor, 'id' | 'typeName' | 'paymentTermsName' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
     try {
       setModalLoading(true);
       setModalError(null);
@@ -62,15 +63,15 @@ const Vendors: React.FC = () => {
       await loadVendors();
       setShowModal(false);
       setSelectedVendor(null);
-    } catch (err: any) {
-      setModalError(err.response?.data?.message || 'Failed to create vendor');
+    } catch (err) {
+      setModalError(getErrorMessage(err));
       console.error('Error creating vendor:', err);
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleUpdate = async (vendorData: any) => {
+  const handleUpdate = async (vendorData: Omit<Vendor, 'id' | 'typeName' | 'paymentTermsName' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
     if (!selectedVendor) return;
 
     try {
@@ -85,8 +86,8 @@ const Vendors: React.FC = () => {
       await loadVendors();
       setShowModal(false);
       setSelectedVendor(null);
-    } catch (err: any) {
-      setModalError(err.response?.data?.message || 'Failed to update vendor');
+    } catch (err) {
+      setModalError(getErrorMessage(err));
       console.error('Error updating vendor:', err);
     } finally {
       setModalLoading(false);
@@ -101,8 +102,8 @@ const Vendors: React.FC = () => {
         await vendorsService.activate(vendor.id);
       }
       await loadVendors();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update vendor status');
+    } catch (err) {
+      setError(getErrorMessage(err));
       console.error('Error toggling vendor status:', err);
     }
   };

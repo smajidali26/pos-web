@@ -32,13 +32,41 @@ export interface CreateSerialNumberRequest {
   notes?: string;
 }
 
+export interface SerialNumberHistory {
+  id: string;
+  serialNumberId: string;
+  action: string;
+  actionName: string;
+  previousStatus?: string;
+  newStatus?: string;
+  performedByUserId?: string;
+  performedByName?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface SerialNumberDetailed extends SerialNumber {
+  history: SerialNumberHistory[];
+}
+
+export interface GetSerialNumbersParams {
+  productId?: string;
+  batchId?: string;
+  locationId?: string;
+  status?: string;
+  customerId?: string;
+  isUnderWarranty?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
 const serialNumbersService = {
-  getAll: async (params?: any): Promise<SerialNumber[]> => {
+  getAll: async (params?: GetSerialNumbersParams): Promise<SerialNumber[]> => {
     const response = await api.get('/SerialNumbers', { params });
     return response.data;
   },
 
-  getById: async (id: string): Promise<any> => {
+  getById: async (id: string): Promise<SerialNumberDetailed> => {
     const response = await api.get(`/SerialNumbers/${id}`);
     return response.data;
   },
@@ -60,7 +88,7 @@ const serialNumbersService = {
     await api.post(`/SerialNumbers/${id}/repair`, { notes });
   },
 
-  getWarrantyExpiring: async (daysAhead: number = 30): Promise<any[]> => {
+  getWarrantyExpiring: async (daysAhead: number = 30): Promise<SerialNumber[]> => {
     const response = await api.get('/SerialNumbers/warranty-expiring', {
       params: { daysAhead }
     });

@@ -3,6 +3,7 @@ import useRoleAccess from '../../hooks/useRoleAccess';
 import ordersService, { Order, OrderStatus } from '../../services/ordersService';
 import { formatCurrency } from '../../utils/currency';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface SalesStats {
   today: { total: number; count: number };
@@ -111,9 +112,9 @@ const Reports: React.FC = () => {
 
       setTopProducts(topProductsList);
 
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to fetch reports data:', err);
-      toast.error('Failed to load reports data');
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

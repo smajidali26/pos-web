@@ -4,6 +4,7 @@ import usersService from '../../services/usersService';
 import { toast } from 'react-toastify';
 import { CreateUserModal } from './CreateUserModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
+import { getErrorMessage } from '../../types/api';
 
 interface User {
   id: string;
@@ -31,8 +32,8 @@ export const UserManagementPage: React.FC = () => {
       setLoading(true);
       const response = await usersService.getAllUsers();
       setUsers(response.data);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to load users');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -47,8 +48,8 @@ export const UserManagementPage: React.FC = () => {
       await usersService.toggleUserStatus(user.id, !user.isActive);
       toast.success(`User ${!user.isActive ? 'activated' : 'deactivated'} successfully`);
       fetchUsers();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update user status');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

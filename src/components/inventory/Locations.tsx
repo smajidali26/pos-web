@@ -3,6 +3,7 @@ import { Card, Table, Badge, Button, Spinner, Alert, Modal, Form, Row, Col } fro
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaToggleOn, FaToggleOff, FaBox } from 'react-icons/fa';
 import locationsService, { Location, CreateLocationRequest, UpdateLocationRequest } from '../../services/locationsService';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 const Locations: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -31,8 +32,8 @@ const Locations: React.FC = () => {
       setError(null);
       const data = await locationsService.getAll(undefined, true);
       setLocations(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load locations');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -84,8 +85,8 @@ const Locations: React.FC = () => {
       }
       handleCloseModal();
       loadLocations();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to save location');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -99,8 +100,8 @@ const Locations: React.FC = () => {
         toast.success('Location activated');
       }
       loadLocations();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update location');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

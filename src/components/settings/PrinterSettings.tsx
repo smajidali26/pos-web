@@ -70,7 +70,7 @@ export const PrinterSettings: React.FC = () => {
       setLoading(true);
 
       // Create a test order
-      const testOrder: any = {
+      const testOrder = {
         id: 'test-' + Date.now(),
         orderNumber: 'TEST-001',
         orderDate: new Date().toISOString(),
@@ -115,9 +115,10 @@ export const PrinterSettings: React.FC = () => {
       });
 
       toast.success('Test receipt printed successfully!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Test print failed:', error);
-      toast.error(error.message || 'Failed to print test receipt');
+      const message = error instanceof Error ? error.message : 'Failed to print test receipt';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

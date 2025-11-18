@@ -27,7 +27,7 @@ interface Product {
 interface ProductModalProps {
   show: boolean;
   onClose: () => void;
-  onSave: (product: any) => void;
+  onSave: (product: unknown) => void;
   product?: Product | null;
   categories: Array<{ id: string; name: string }>;
   isLoading?: boolean;

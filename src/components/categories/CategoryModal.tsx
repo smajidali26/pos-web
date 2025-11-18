@@ -11,7 +11,7 @@ interface Category {
 interface CategoryModalProps {
   show: boolean;
   onClose: () => void;
-  onSave: (category: any) => void;
+  onSave: (category: Omit<Category, 'id'>) => void;
   category?: Category | null;
   isLoading?: boolean;
   error?: string | null;

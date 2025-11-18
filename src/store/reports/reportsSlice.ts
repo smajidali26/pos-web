@@ -8,6 +8,15 @@ import {
   SalesTrendData
 } from '../../services/reportsService';
 
+export interface SummaryStats {
+  totalSales: number;
+  totalOrders: number;
+  totalCustomers: number;
+  averageOrderValue: number;
+  topSellingProduct: string;
+  topCustomer: string;
+}
+
 export interface ReportsState {
   dailySales: SalesReport | null;
   weeklySales: SalesReport | null;
@@ -17,7 +26,7 @@ export interface ReportsState {
   topCustomers: CustomerReport[];
   hourlySales: HourlySalesReport[];
   salesTrend: SalesTrendData[];
-  summaryStats: any | null;
+  summaryStats: SummaryStats | null;
   isLoading: boolean;
   error: string | null;
   dateRange: {
@@ -63,7 +72,7 @@ const reportsSlice = createSlice({
     },
 
     // Weekly sales
-    fetchWeeklySalesRequest: (state, action: PayloadAction<any>) => {
+    fetchWeeklySalesRequest: (state, action: PayloadAction<{ weekStart?: string; weekEnd?: string }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -77,7 +86,7 @@ const reportsSlice = createSlice({
     },
 
     // Monthly sales
-    fetchMonthlySalesRequest: (state, action: PayloadAction<any>) => {
+    fetchMonthlySalesRequest: (state, action: PayloadAction<{ month?: number; year?: number }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -91,7 +100,7 @@ const reportsSlice = createSlice({
     },
 
     // Top products
-    fetchTopProductsRequest: (state, action: PayloadAction<any>) => {
+    fetchTopProductsRequest: (state, action: PayloadAction<{ limit?: number; startDate?: string; endDate?: string }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -105,7 +114,7 @@ const reportsSlice = createSlice({
     },
 
     // Category sales
-    fetchCategorySalesRequest: (state, action: PayloadAction<any>) => {
+    fetchCategorySalesRequest: (state, action: PayloadAction<{ startDate?: string; endDate?: string }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -119,7 +128,7 @@ const reportsSlice = createSlice({
     },
 
     // Top customers
-    fetchTopCustomersRequest: (state, action: PayloadAction<any>) => {
+    fetchTopCustomersRequest: (state, action: PayloadAction<{ limit?: number; startDate?: string; endDate?: string }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -147,7 +156,7 @@ const reportsSlice = createSlice({
     },
 
     // Sales trend
-    fetchSalesTrendRequest: (state, action: PayloadAction<any>) => {
+    fetchSalesTrendRequest: (state, action: PayloadAction<{ startDate: string; endDate: string; interval?: 'daily' | 'weekly' | 'monthly' }>) => {
       state.isLoading = true;
       state.error = null;
     },
@@ -161,11 +170,11 @@ const reportsSlice = createSlice({
     },
 
     // Summary stats
-    fetchSummaryStatsRequest: (state, action: PayloadAction<any>) => {
+    fetchSummaryStatsRequest: (state, action: PayloadAction<{ startDate?: string; endDate?: string }>) => {
       state.isLoading = true;
       state.error = null;
     },
-    fetchSummaryStatsSuccess: (state, action: PayloadAction<any>) => {
+    fetchSummaryStatsSuccess: (state, action: PayloadAction<SummaryStats>) => {
       state.summaryStats = action.payload;
       state.isLoading = false;
     },

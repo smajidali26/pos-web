@@ -4,6 +4,7 @@ import { FaBell, FaExclamationTriangle, FaCheck, FaTimes, FaEye } from 'react-ic
 import stockAlertsService, { StockAlert } from '../../services/stockAlertsService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/dateUtils';
+import { getErrorMessage } from '../../types/api';
 
 const StockAlerts: React.FC = () => {
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
@@ -28,8 +29,8 @@ const StockAlerts: React.FC = () => {
       ]);
       setAlerts(alertsData);
       setSummary(summaryData);
-    } catch (err: any) {
-      toast.error('Failed to load alerts');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -59,8 +60,8 @@ const StockAlerts: React.FC = () => {
       setActionType(null);
       setActionData({ notes: '', reason: '', resolutionNotes: '' });
       loadData();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Action failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

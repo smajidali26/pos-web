@@ -4,6 +4,7 @@ import { FaBoxes, FaPlus, FaExclamationTriangle, FaBan, FaClock } from 'react-ic
 import batchesService, { Batch, CreateBatchRequest } from '../../services/batchesService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/dateUtils';
+import { getErrorMessage } from '../../types/api';
 
 const Batches: React.FC = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -38,8 +39,8 @@ const Batches: React.FC = () => {
         data = await batchesService.getAll();
       }
       setBatches(data);
-    } catch (err: any) {
-      toast.error('Failed to load batches');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -58,8 +59,8 @@ const Batches: React.FC = () => {
         unitCost: 0,
       });
       loadBatches();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create batch');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -74,8 +75,8 @@ const Batches: React.FC = () => {
       setSelectedBatch(null);
       setRecallReason('');
       loadBatches();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to recall batch');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 

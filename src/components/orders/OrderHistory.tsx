@@ -34,7 +34,7 @@ export const OrderHistory: React.FC = () => {
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [orderToRefund, setOrderToRefund] = useState<Order | null>(null);
-  const [newlyCreatedOrder, setNewlyCreatedOrder] = useState<Order | null>(null);
+  const [newlyCreatedOrder, setNewlyCreatedOrder] = useState<unknown>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
   const [startDate, setStartDate] = useState('');
@@ -52,7 +52,7 @@ export const OrderHistory: React.FC = () => {
 
   const handleFilterChange = (status: OrderStatus | 'all') => {
     setFilterStatus(status);
-    const filters: any = { page: 1, pageSize };
+    const filters: Record<string, unknown> = { page: 1, pageSize };
     if (status !== 'all') {
       filters.status = status;
     }
@@ -62,7 +62,7 @@ export const OrderHistory: React.FC = () => {
   };
 
   const handleDateFilter = () => {
-    const filters: any = { page: 1, pageSize };
+    const filters: Record<string, unknown> = { page: 1, pageSize };
     if (filterStatus !== 'all') {
       filters.status = filterStatus;
     }
@@ -76,23 +76,24 @@ export const OrderHistory: React.FC = () => {
     setShowReceipt(true);
   };
 
-  const handleCreateOrder = async (orderData: any) => {
+  const handleCreateOrder = async (orderData: unknown) => {
     try {
       await createOrder(orderData);
       toast.success('Order created successfully!');
       // Don't close modal here - will be closed by modal itself
       // Refresh orders list
       fetchOrders();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create order:', err);
-      toast.error(err.message || 'Failed to create order');
+      const message = err instanceof Error ? err.message : 'Failed to create order';
+      toast.error(message);
       throw err; // Re-throw to let modal handle it
     }
   };
 
-  const handleOrderCreated = (order: any) => {
+  const handleOrderCreated = (order: unknown) => {
     // Store the created order for printing
-    setNewlyCreatedOrder(order);
+    setNewlyCreatedOrder(order as Order);
     setShowReceipt(true);
     setShowNewOrderModal(false);
   };
@@ -377,7 +378,7 @@ export const OrderHistory: React.FC = () => {
             setSelectedOrder(null);
             setNewlyCreatedOrder(null);
           }}
-          order={(newlyCreatedOrder || selectedOrder)!}
+          order={(newlyCreatedOrder || selectedOrder) as Order}
         />
       )}
 

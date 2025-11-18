@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import usersService from '../../services/usersService';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface ChangePasswordModalProps {
   show: boolean;
@@ -79,8 +80,8 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ show, 
 
       toast.success('Password changed successfully!');
       handleClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to change password');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

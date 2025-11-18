@@ -75,3 +75,10 @@ export function getValidationErrors(error: unknown): Record<string, string[]> | 
   }
   return null;
 }
+
+/**
+ * Type guard to check if an error has a response property (like Axios errors)
+ */
+export function hasErrorResponse(error: unknown): error is { response?: { data?: { message?: string } } } {
+  return typeof error === 'object' && error !== null && 'response' in error;
+}

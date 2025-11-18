@@ -47,12 +47,12 @@ export const Customers: React.FC = () => {
   };
 
   const handleDeleteCustomer = async (customer: Customer) => {
-    if (window.confirm(`Are you sure you want to delete {formatCurrency(customer.firstName} {formatCurrency(customer.lastName}?`)) {
+    if (window.confirm(`Are you sure you want to delete ${customer.firstName} ${customer.lastName}?`)) {
       deleteCustomer(customer.id);
     }
   };
 
-  const handleSaveCustomer = (customerData: any) => {
+  const handleSaveCustomer = (customerData: unknown) => {
     if (editingCustomer) {
       updateCustomer(editingCustomer.id, customerData);
     } else {
@@ -93,7 +93,7 @@ export const Customers: React.FC = () => {
     const cleaned = phone.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
-      return `({formatCurrency(match[1]}) {formatCurrency(match[2]}-{formatCurrency(match[3]}`;
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
     return phone;
   };

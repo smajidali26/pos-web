@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Badge, Button, Spinner, Alert, Modal, Form, Row, Col, Tabs, Tab } from 'react-bootstrap';
 import { FaBarcode, FaPlus, FaExchangeAlt, FaTools, FaTrash, FaShieldAlt, FaClock } from 'react-icons/fa';
-import serialNumbersService, { SerialNumber, CreateSerialNumberRequest } from '../../services/serialNumbersService';
+import serialNumbersService, { SerialNumber, CreateSerialNumberRequest, SerialNumberHistory } from '../../services/serialNumbersService';
 import { toast } from 'react-toastify';
 import { formatDate } from '../../utils/dateUtils';
+import { getErrorMessage } from '../../types/api';
 
 const SerialNumbers: React.FC = () => {
   const [serialNumbers, setSerialNumbers] = useState<SerialNumber[]>([]);
@@ -30,8 +31,8 @@ const SerialNumbers: React.FC = () => {
       setLoading(true);
       const data = await serialNumbersService.getAll(filter);
       setSerialNumbers(data);
-    } catch (err: any) {
-      toast.error('Failed to load serial numbers');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -49,8 +50,8 @@ const SerialNumbers: React.FC = () => {
         warrantyMonths: 12,
       });
       loadSerialNumbers();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create serial number');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -59,8 +60,8 @@ const SerialNumbers: React.FC = () => {
       const details = await serialNumbersService.getById(serial.id);
       setSelectedSerial(details);
       setShowDetailsModal(true);
-    } catch (err: any) {
-      toast.error('Failed to load serial number details');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -88,8 +89,8 @@ const SerialNumbers: React.FC = () => {
       setActionType(null);
       setActionData({});
       loadSerialNumbers();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Action failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -477,13 +478,13 @@ const SerialNumbers: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedSerial.history.map((entry: any, index: number) => (
+                      {selectedSerial.history.map((entry: SerialNumberHistory, index: number) => (
                         <tr key={index}>
-                          <td><small>{formatDate(entry.actionDate)}</small></td>
+                          <td><small>{formatDate(entry.createdAt)}</small></td>
                           <td>
-                            <Badge bg="secondary">{entry.action}</Badge>
+                            <Badge bg="secondary">{entry.actionName}</Badge>
                           </td>
-                          <td><small>{entry.actionBy}</small></td>
+                          <td><small>{entry.performedByName || '-'}</small></td>
                           <td><small>{entry.notes || '-'}</small></td>
                         </tr>
                       ))}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import usersService, { ResetPasswordRequest } from '../../services/usersService';
 import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../types/api';
 
 interface User {
   id: string;
@@ -84,8 +85,8 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       toast.success(`Password reset successfully for ${user.username}!`);
       handleReset();
       onPasswordReset();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

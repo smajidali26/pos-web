@@ -1,6 +1,7 @@
 import { call, put, takeEvery, takeLatest, all, fork } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { AxiosError } from 'axios';
+import { SagaIterator } from 'redux-saga';
+import type { AxiosError } from 'axios';
 import axios from 'axios';
 import { authService } from '../../services/authService';
 import {
@@ -22,10 +23,10 @@ import {
   validateSessionFailure,
   resetAuth
 } from './actions';
-import { LoginCredentials, LoginResponse } from './types';
+import { LoginCredentials, LoginResponse, User } from './types';
 
 // Worker saga for login
-function* loginSaga(action: PayloadAction<LoginCredentials>) {
+function* loginSaga(action: PayloadAction<LoginCredentials>): SagaIterator {
   try {
     const { username, password } = action.payload;
 
@@ -76,13 +77,13 @@ function* loginSaga(action: PayloadAction<LoginCredentials>) {
      yield put(loginSuccess(response));
   } catch (error) {
     const axiosError = error as AxiosError<{ message?: string }>;
-    const errorMessage = axiosError.response?.data?.message || 'Login failed. Please try again.';
+    const errorMessage = axiosError.response?.data?.message ?? 'Login failed. Please try again.';
     yield put(loginFailure(errorMessage));
   }
 }
 
 // Worker saga for logout
-function* logoutSaga() {
+function* logoutSaga(): SagaIterator {
   console.log('========================================');
   console.log('🔴 LOGOUT SAGA STARTED');
   console.log('========================================');
@@ -118,7 +119,7 @@ function* logoutSaga() {
 }
 
 // Worker saga for token refresh
-function* refreshTokenSaga() {
+function* refreshTokenSaga(): SagaIterator {
   try {
     // Backend reads refreshToken from httpOnly cookie
     // and sets new tokens as httpOnly cookies
@@ -129,7 +130,7 @@ function* refreshTokenSaga() {
     yield put(refreshTokenSuccess(result));
   } catch (error) {
     const axiosError = error as AxiosError<{ message?: string }>;
-    const errorMessage = axiosError.response?.data?.message || 'Token refresh failed';
+    const errorMessage = axiosError.response?.data?.message ?? 'Token refresh failed';
 
     console.error('❌ Token refresh failed - backend will clear cookies');
 
@@ -139,12 +140,12 @@ function* refreshTokenSaga() {
 }
 
 // Worker saga for session validation
-function* validateSessionSaga() {
+function* validateSessionSaga(): SagaIterator {
   try {
     console.log('🔍 Validating session from cookie...');
 
     // Call validate endpoint which reads token from cookie
-    const result: { isValid: boolean; user?: any; errorMessage?: string } = yield call(authService.validateToken);
+    const result: { isValid: boolean; user?: User; errorMessage?: string } = yield call(authService.validateToken);
 
     if (result.isValid && result.user) {
       console.log('✅ Session valid - restoring user:', result.user);

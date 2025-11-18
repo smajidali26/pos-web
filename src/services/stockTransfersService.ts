@@ -36,8 +36,34 @@ export interface CreateStockTransferRequest {
   notes?: string;
 }
 
+export interface StockTransferStatistics {
+  pendingCount: number;
+  approvedCount: number;
+  inTransitCount: number;
+  completedCount: number;
+  rejectedCount: number;
+  cancelledCount: number;
+  totalWithVariance: number;
+  averageTransferTime: number;
+}
+
+export interface ReceiveResponse {
+  message: string;
+}
+
+export interface GetStockTransfersParams {
+  productId?: string;
+  fromLocationId?: string;
+  toLocationId?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 const stockTransfersService = {
-  getAll: async (params?: any): Promise<StockTransfer[]> => {
+  getAll: async (params?: GetStockTransfersParams): Promise<StockTransfer[]> => {
     const response = await api.get('/StockTransfers', { params });
     return response.data;
   },
@@ -64,7 +90,7 @@ const stockTransfersService = {
     await api.post(`/StockTransfers/${id}/ship`, { shippedQuantity, trackingNumber, shippingCost });
   },
 
-  receive: async (id: string, receivedQuantity: number, receiverNotes?: string): Promise<any> => {
+  receive: async (id: string, receivedQuantity: number, receiverNotes?: string): Promise<ReceiveResponse> => {
     const response = await api.post(`/StockTransfers/${id}/receive`, { receivedQuantity, receiverNotes });
     return response.data;
   },
@@ -77,7 +103,7 @@ const stockTransfersService = {
     await api.post(`/StockTransfers/${id}/cancel`, { reason });
   },
 
-  getStatistics: async (startDate?: string, endDate?: string): Promise<any> => {
+  getStatistics: async (startDate?: string, endDate?: string): Promise<StockTransferStatistics> => {
     const response = await api.get('/StockTransfers/statistics', {
       params: { startDate, endDate }
     });
