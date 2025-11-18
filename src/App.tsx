@@ -21,6 +21,22 @@ import StockTransfers from './components/inventory/StockTransfers';
 import Batches from './components/inventory/Batches';
 import StockAlerts from './components/inventory/StockAlerts';
 import SerialNumbers from './components/inventory/SerialNumbers';
+import { Stores, StoreHierarchy, StoreInventory, StoreDashboard } from './components/stores';
+import { InterStoreTransfers, PendingTransfers } from './components/interStoreTransfers';
+import LoyaltyDashboard from './components/loyalty/LoyaltyDashboard';
+import LoyaltyProgramSettings from './components/loyalty/LoyaltyProgramSettings';
+import CustomerLoyaltyProfile from './components/loyalty/CustomerLoyaltyProfile';
+import RewardsStore from './components/loyalty/RewardsStore';
+import RewardRedemptions from './components/loyalty/RewardRedemptions';
+import {
+  AnalyticsDashboard,
+  RealTimeDashboard,
+  SalesAnalytics,
+  SalesForecastView,
+  ABCAnalysisView,
+  InventoryTurnoverView,
+  InventoryHealthDashboard,
+} from './components/analytics';
 import useTokenRefresh from './hooks/useTokenRefresh';
 import { USER_ROLES, type UserRole } from './hooks/useRoleAccess';
 import { validateSessionRequest } from './store/auth';
@@ -229,6 +245,166 @@ function App(): React.ReactElement {
               element={
                 <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
                   <SerialNumbers key={`serial-numbers-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Store Management routes - Owner and Manager */}
+            <Route
+              path="/stores"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <Stores key={`stores-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/stores/hierarchy"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <StoreHierarchy key={`store-hierarchy-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/stores/:storeId"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <StoreDashboard key={`store-dashboard-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/stores/:storeId/inventory"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <StoreInventory key={`store-inventory-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Inter-Store Transfer routes - Owner and Manager */}
+            <Route
+              path="/transfers"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <InterStoreTransfers key={`transfers-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/transfers/pending"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <PendingTransfers key={`pending-transfers-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Loyalty Program routes - Owner and Manager */}
+            <Route
+              path="/loyalty"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <LoyaltyDashboard key={`loyalty-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/loyalty/dashboard"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <LoyaltyDashboard key={`loyalty-dashboard-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/loyalty/settings"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <LoyaltyProgramSettings key={`loyalty-settings-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/loyalty/customer/:customerId"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <CustomerLoyaltyProfile key={`loyalty-customer-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/loyalty/rewards"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <RewardsStore isAdminView={true} key={`loyalty-rewards-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/loyalty/redemptions/:customerId"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <RewardRedemptions customerId="" key={`loyalty-redemptions-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Analytics routes - Owner and Manager */}
+            <Route
+              path="/analytics"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <AnalyticsDashboard key={`analytics-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/realtime"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <RealTimeDashboard key={`analytics-realtime-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/sales"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <SalesAnalytics key={`analytics-sales-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/forecast"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <SalesForecastView key={`analytics-forecast-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/abc-analysis"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <ABCAnalysisView key={`analytics-abc-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/turnover"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <InventoryTurnoverView key={`analytics-turnover-${location.pathname}`} />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/inventory"
+              element={
+                <RoleProtectedRoute requiredRoles={[USER_ROLES.OWNER, USER_ROLES.MANAGER]}>
+                  <InventoryHealthDashboard key={`analytics-inventory-${location.pathname}`} />
                 </RoleProtectedRoute>
               }
             />
